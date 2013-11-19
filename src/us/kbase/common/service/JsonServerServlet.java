@@ -32,6 +32,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.ini4j.Ini;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -106,8 +107,9 @@ public class JsonServerServlet extends HttpServlet {
 		this.startupFailed = true;
 	}
 	
+	
 	public JsonServerServlet(String specServiceName) {
-		this.mapper = new ObjectMapper().registerModule(new JacksonTupleModule());
+		this.mapper = new KBaseObjectMapper();
 		this.rpcCache = new HashMap<String, Method>();
 		for (Method m : getClass().getMethods()) {
 			if (m.isAnnotationPresent(JsonServerMethod.class)) {
@@ -288,7 +290,13 @@ public class JsonServerServlet extends HttpServlet {
 				Type paramType = rpcMethod.getGenericParameterTypes()[typePos];
 				PlainTypeRef paramJavaType = new PlainTypeRef(paramType);
 				try {
-					methodValues[typePos] = mapper.readValue(new JsonTreeTraversingParser(jsonData, mapper), paramJavaType);
+					Object obj;
+					if (paramType instanceof Class && paramType.equals(UObject.class)) {
+						obj = new UObject(jsonData);
+					} else {
+						obj = mapper.readValue(new JsonTreeTraversingParser(jsonData, mapper), paramJavaType);
+					}
+					methodValues[typePos] = obj;
 				} catch (Exception ex) {
 					writeError(response, -32602, "Wrong type of parameter " + typePos + " for method " + rpcName + " (" + ex.getMessage() + ")", output);	
 					return;
@@ -313,10 +321,12 @@ public class JsonServerServlet extends HttpServlet {
 			if (!isTuple) {
 				result = Arrays.asList(result);
 			}
-			ObjectNode ret = mapper.createObjectNode();
-			ret.put("version", "1.1");
-			ret.put("result", mapper.valueToTree(result));
-			mapper.writeValue(new UnclosableOutputStream(output), ret);
+			JsonGenerator jg = mapper.getFactory().createGenerator(new UnclosableOutputStream(output));
+			jg.writeStartObject();
+			jg.writeStringField("version", "1.1");
+			jg.writeObjectField("result", result);
+			jg.writeEndObject();
+			jg.flush();
 			output.flush();
 		} catch (Exception ex) {
 			writeError(response, -32400, "Unexpected internal error (" + ex.getMessage() + ")", output);	
@@ -365,16 +375,20 @@ public class JsonServerServlet extends HttpServlet {
 		String id = JsonServerSyslog.getCurrentRpcInfo().getId();
 		if (id != null)
 			ret.put("id", id);
+		ByteArrayOutputStream bais;
 		try {
-			ByteArrayOutputStream bais = new ByteArrayOutputStream();
+			bais = new ByteArrayOutputStream();
 			mapper.writeValue(bais, ret);
 			bais.close();
-			//String logMessage = new String(bytes);
-			//sysLogger.log(LOG_LEVEL_ERR, getClass().getName(), logMessage);
-			output.write(bais.toByteArray());
-			output.flush();
 		} catch (Exception e) {
 			e.printStackTrace();
+			return;
+		}
+		try {
+			output.write(bais.toByteArray());
+			output.flush();
+		} catch (Exception ignore) {
+			// We can not do anything cause client closed the connection
 		}
 	}
 	

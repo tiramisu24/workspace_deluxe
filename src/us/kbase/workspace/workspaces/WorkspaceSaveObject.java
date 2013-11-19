@@ -8,6 +8,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import us.kbase.common.service.KBaseObjectMapper;
 import us.kbase.typedobj.core.TypeDefId;
 import us.kbase.typedobj.core.TypedObjectValidationReport;
 import us.kbase.workspace.database.ObjectIDNoWSNoVer;
@@ -16,7 +17,7 @@ import us.kbase.workspace.database.Reference;
 
 public class WorkspaceSaveObject {
 	
-	private static final ObjectMapper MAPPER = new ObjectMapper();
+	private static final ObjectMapper MAPPER = new KBaseObjectMapper();
 	private static final int MAX_USER_META_SIZE = 16000;
 	
 	private final ObjectIDNoWSNoVer id;

@@ -24,7 +24,6 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleDeserializers;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.module.SimpleSerializers;
-import com.fasterxml.jackson.databind.node.TreeTraversingParser;
 import com.fasterxml.jackson.databind.util.TokenBuffer;
 
 @SuppressWarnings("serial")
@@ -36,7 +35,6 @@ public class JacksonTupleModule extends SimpleModule {
 			public JsonSerializer<?> findSerializer(SerializationConfig config,
 					JavaType type, BeanDescription beanDesc) {
 				Class<?> rawClass = type.getRawClass();
-				//if ()
 				int tupleSizeIfTuple = getTupleSize(rawClass);
 				if (tupleSizeIfTuple > 0) {
 					return new TupleSerializer(tupleSizeIfTuple);
@@ -62,7 +60,7 @@ public class JacksonTupleModule extends SimpleModule {
 		addSerializer(UObject.class, new UObjectSerializer());
 		addDeserializer(UObject.class, new UObjectDeserializer());
 	}
-	
+		
 	private boolean isTuple(Class<?> rawClass) {
 		return getTupleSize(rawClass) > 0;
 	}
@@ -112,7 +110,7 @@ public class JacksonTupleModule extends SimpleModule {
 			try {
 				Object res = retClass.newInstance();
 				if (!p.isExpectedStartArrayToken()) {
-					System.out.println("Bad parse in TupleDeserializer: " + p.getCurrentToken());
+					//System.out.println("Bad parse in TupleDeserializer: " + p.getCurrentToken());
 					return null;
 				}
 				p.nextToken();

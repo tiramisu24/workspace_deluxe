@@ -10,6 +10,7 @@ import us.kbase.auth.AuthService;
 import us.kbase.auth.AuthToken;
 import us.kbase.auth.AuthUser;
 import us.kbase.auth.TokenExpiredException;
+import us.kbase.common.service.KBaseObjectMapper;
 import us.kbase.shock.client.BasicShockClient;
 import us.kbase.shock.client.ShockNode;
 import us.kbase.shock.client.ShockNodeId;
@@ -33,7 +34,7 @@ import com.mongodb.MongoException;
 
 public class ShockBackend implements BlobStore {
 	
-	private static final ObjectMapper MAPPER = new ObjectMapper();
+	private static final ObjectMapper MAPPER = new KBaseObjectMapper();
 	
 	private String user;
 	private String password;

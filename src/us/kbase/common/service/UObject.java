@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class UObject {
 	private Object userObj;
 		
-	private static ObjectMapper mapper = new ObjectMapper().registerModule(new JacksonTupleModule());
+	private static ObjectMapper mapper = new KBaseObjectMapper();
 	
 	/**
 	 * @return instance of UObject created from Jackson tree parsed from JSON text

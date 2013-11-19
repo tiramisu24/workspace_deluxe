@@ -61,6 +61,7 @@ import us.kbase.workspace.database.mongo.MongoWorkspaceDB;
 import us.kbase.workspace.database.mongo.ShockBackend;
 import us.kbase.workspace.exceptions.WorkspaceAuthorizationException;
 import us.kbase.workspace.kbase.Util;
+import us.kbase.common.service.KBaseObjectMapper;
 import us.kbase.common.test.TestException;
 import us.kbase.workspace.test.WorkspaceTestCommon;
 import us.kbase.workspace.workspaces.WorkspaceSaveObject;
@@ -71,7 +72,7 @@ import us.kbase.workspace.workspaces.Workspaces;
 @RunWith(Parameterized.class)
 public class TestWorkspaces {
 
-	private static final ObjectMapper mapper = new ObjectMapper();
+	private static final ObjectMapper mapper = new KBaseObjectMapper();
 	
 	public static final Workspaces[] TEST_WORKSPACES = new Workspaces[2];
 	public static final String LONG_TEXT_PART = "Passersby were amazed by the unusually large amounts of blood. ";

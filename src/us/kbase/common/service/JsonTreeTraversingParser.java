@@ -4,15 +4,47 @@ import java.io.IOException;
 import java.math.BigInteger;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.ObjectCodec;
+import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.TreeTraversingParser;
 
+/**
+ * This class is extension of com.fasterxml.jackson.databind.node.TreeTraversingParser
+ * which allows us (1) to check long and double value bounds and (2) to avoid copying
+ * of subtree during deserialization it into UObject.
+ * @author rsutormin
+ */
 public class JsonTreeTraversingParser extends TreeTraversingParser {
 	public JsonTreeTraversingParser(JsonNode tree, ObjectCodec oc) {
 		super(tree, oc);
 	}
 	
+	public JsonNode getCurrentNodeAndSkipChildren() throws JsonParseException, IOException {
+		JsonNode ret = currentNode();
+		skipChildren();
+		return ret;
+	}
+	
+	/**
+	 * This method helps to avoid copying of subtree during deserialization it into 
+	 * UObject.
+	 */
+    @SuppressWarnings("unchecked")
+	public <T extends TreeNode> T readValueAsTree()
+            throws IOException, JsonProcessingException {
+		JsonNode curRoot = currentNode();
+		if (curRoot != null) {
+			skipChildren();
+			return (T)curRoot;
+		}
+    	return super.readValueAsTree();
+    }
+    
+    /**
+     * Method checks bounds of long values.
+     */
 	@Override
 	public long getLongValue() throws IOException, JsonParseException {
 		JsonNode node = currentNumericNode();
@@ -34,6 +66,9 @@ public class JsonTreeTraversingParser extends TreeTraversingParser {
 		return node.longValue();
 	}
 	
+    /**
+     * Method checks bounds of double values.
+     */
 	@Override
 	public double getDoubleValue() throws IOException, JsonParseException {
 		double ret = super.getDoubleValue();

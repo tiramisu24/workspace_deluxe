@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.apache.commons.codec.digest.DigestUtils;
 
+import us.kbase.common.service.KBaseObjectMapper;
 import us.kbase.typedobj.core.AbsoluteTypeDefId;
 import us.kbase.typedobj.core.TypeDefId;
 
@@ -18,7 +19,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 public class TypeData {
 	
 	@JsonIgnore
-	private static final ObjectMapper MAPPER = new ObjectMapper();
+	private static final ObjectMapper MAPPER = new KBaseObjectMapper();
 	static {
 		MAPPER.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
 	}

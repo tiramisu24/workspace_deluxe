@@ -28,12 +28,14 @@ import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
+
+import com.fasterxml.jackson.core.type.TypeReference;
 
 import us.kbase.auth.AuthService;
 import us.kbase.auth.AuthToken;
 import us.kbase.common.mongo.exceptions.InvalidHostException;
+import us.kbase.common.service.JsonByteString;
 import us.kbase.common.service.JsonClientException;
 import us.kbase.common.service.ServerException;
 import us.kbase.common.service.Tuple10;
@@ -1010,58 +1012,83 @@ public class JSONRPCLayerTest {
 		}
 	}
 	
-	@Ignore //TODO unignore when mem issues sorted
 	@Test
 	public void saveBigData() throws Exception {
+		boolean debug = false;
 		CLIENT1.createWorkspace(new CreateWorkspaceParams().withWorkspace("bigdata"));
-		
-		waitForGC("[JSONRPCLayerTest.saveBigData] Used memory before preparation", 1000000000L);
-		System.out.println("----------------------------------------------------------------------");
+		waitForGC("[JSONRPCLayerTest.saveBigData] Used memory before preparation", 100000000L, debug);  // 100mb
 		final boolean[] threadStopWrapper1 = {false};
-		Thread t1 = watchForMem("[JSONRPCLayerTest.saveBigData] Used memory during preparation", threadStopWrapper1);
-		Map<String, Object> data = new HashMap<String, Object>();
-		List<String> subdata = new LinkedList<String>();
+		Thread t1 = null;
+		if (debug) {
+			System.out.println("----------------------------------------------------------------------");
+			t1 = watchForMem("[JSONRPCLayerTest.saveBigData] Used memory during preparation", threadStopWrapper1);
+		}
+		Map<String, List<JsonByteString>> data = new HashMap<String, List<JsonByteString>>();
+		List<JsonByteString> subdata = new LinkedList<JsonByteString>();
 		data.put("subset", subdata);
 		for (int i = 0; i < 997008; i++) {
-			//force allocation of a new char[]
-			subdata.add("" + TEXT1000);
+			//force allocation of a new byte[]
+			subdata.add(new JsonByteString("" + TEXT1000));
 		}
-		threadStopWrapper1[0] = true;
-		t1.join();
-		System.out.println("----------------------------------------------------------------------");
 		final boolean[] threadStopWrapper2 = {false};
-		Thread t2 = watchForMem("[JSONRPCLayerTest.saveBigData] Used memory during saveObject", threadStopWrapper2);
+		Thread t2 = null;
+		if (debug) {
+			threadStopWrapper1[0] = true;
+			t1.join();
+			System.out.println("----------------------------------------------------------------------");
+			t2 = watchForMem("[JSONRPCLayerTest.saveBigData] Used memory during saveObject", threadStopWrapper2);
+		}
 		CLIENT1.saveObjects(new SaveObjectsParams().withWorkspace("bigdata")
 				.withObjects(Arrays.asList(new ObjectSaveData().withType(SAFE_TYPE)
 						.withData(new UObject(data)))));
-		threadStopWrapper2[0] = true;
-		t2.join();
+		if (debug) {
+			threadStopWrapper2[0] = true;
+			t2.join();
+			System.out.println("----------------------------------------------------------------------");
+		}
 		data = null;
 		subdata = null;
-		System.out.println("----------------------------------------------------------------------");
-		waitForGC("[JSONRPCLayerTest.saveBigData] Used memory before getObject", 1000000000L);
-		System.out.println("----------------------------------------------------------------------");
+		waitForGC("[JSONRPCLayerTest.saveBigData] Used memory before getObject", 100000000L, debug);  // 100mb
 		final boolean[] threadStopWrapper3 = {false};
-		Thread t3 = watchForMem("[JSONRPCLayerTest.saveBigData] Used memory during getObject", threadStopWrapper3);
-		// need 3g to get to this point
-		data = CLIENT1.getObjects(Arrays.asList(new ObjectIdentity().withObjid(1L)
-				.withWorkspace("bigdata"))).get(0).getData().asInstance();
-		threadStopWrapper3[0] = true;
-		t3.join();
-		System.out.println("----------------------------------------------------------------------");
-		waitForGC("[JSONRPCLayerTest.saveBigData] Used memory after getObject", 3000000000L);
-		//need 6g to get past readValueAsTree() in UObjectDeserializer
+		Thread t3 = null;
+		if (debug) {
+			System.out.println("----------------------------------------------------------------------");
+			t3 = watchForMem("[JSONRPCLayerTest.saveBigData] Used memory during getObject", threadStopWrapper3);
+		}
+		// need 2.8g to get to this point
+		UObject ret = CLIENT1.getObjects(Arrays.asList(new ObjectIdentity().withObjid(1L)
+				.withWorkspace("bigdata"))).get(0).getData();
+		if (debug) {
+			threadStopWrapper3[0] = true;
+			t3.join();
+			System.out.println("----------------------------------------------------------------------");
+		}
+		waitForGC("[JSONRPCLayerTest.saveBigData] Used memory after getObject", 1200000000L, debug);  // 1.2gb
+		final boolean[] threadStopWrapper4 = {false};
+		Thread t4 = null;
+		if (debug) {
+			System.out.println("----------------------------------------------------------------------");
+			t4 = watchForMem("[JSONRPCLayerTest.saveBigData] Used memory during asClassInstance", threadStopWrapper4);
+		}
+		data = ret.asClassInstance(new TypeReference<Map<String, List<JsonByteString>>>() {});
+		if (debug) {
+			threadStopWrapper4[0] = true;
+			t4.join();
+			System.out.println("----------------------------------------------------------------------");
+		}
+		ret = null;
+		waitForGC("[JSONRPCLayerTest.saveBigData] Used memory after asClassInstance", 1200000000L, debug);  // 1.2gb		
 		assertThat("correct obj keys", data.keySet(),
 				is((Set<String>) new HashSet<String>(Arrays.asList("subset"))));
-		@SuppressWarnings("unchecked")
-		List<String> newsd = (List<String>) data.get("subset");
+		List<JsonByteString> newsd = (List<JsonByteString>) data.get("subset");
 		assertThat("correct subdata size", newsd.size(), is(997008));
-		for (String s: newsd) {
-			assertThat("correct string in subdata", s, is(TEXT1000));
+		for (JsonByteString s: newsd) {
+			assertThat("correct string in subdata", s.textValue(), is(TEXT1000));
 		}
 	}
 
-	private static Thread watchForMem(final String header, final boolean[] threadStopWrapper) {
+	private static Thread watchForMem(final String header, 
+			final boolean[] threadStopWrapper) {
 		Thread ret = new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -1085,12 +1112,13 @@ public class JSONRPCLayerTest {
 		return ret;
 	}
 	
-	private static void waitForGC(String header, long maxUsedMem) throws InterruptedException {
+	private static void waitForGC(String header, long maxUsedMem, boolean debug) throws InterruptedException {
 		while (true) {
 			long freeMem = Runtime.getRuntime().freeMemory();
 			long totalMem = Runtime.getRuntime().totalMemory();
 			long usedMem = totalMem - freeMem;
-			System.out.println(header + ": " + usedMem);
+			if (debug)
+				System.out.println(header + ": " + usedMem);
 			if (usedMem < maxUsedMem)
 				break;
 			System.gc();

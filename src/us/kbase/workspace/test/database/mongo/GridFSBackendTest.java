@@ -13,6 +13,7 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import us.kbase.common.service.KBaseObjectMapper;
 import us.kbase.typedobj.core.AbsoluteTypeDefId;
 import us.kbase.typedobj.core.MD5;
 import us.kbase.typedobj.core.TypeDefName;
@@ -23,7 +24,7 @@ import us.kbase.workspace.test.WorkspaceTestCommon;
 
 public class GridFSBackendTest {
 	
-	private static final ObjectMapper MAPPER = new ObjectMapper();
+	private static final ObjectMapper MAPPER = new KBaseObjectMapper();
 	
 	private static GridFSBackend gfsb;
 	

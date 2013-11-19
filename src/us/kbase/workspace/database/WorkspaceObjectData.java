@@ -1,12 +1,14 @@
 package us.kbase.workspace.database;
 
+import us.kbase.common.service.KBaseObjectMapper;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class WorkspaceObjectData {
 	
-	private static final ObjectMapper MAPPER = new ObjectMapper();
+	private static final ObjectMapper MAPPER = new KBaseObjectMapper();
 
 	private final JsonNode data;
 	private final ObjectInfoUserMeta meta;

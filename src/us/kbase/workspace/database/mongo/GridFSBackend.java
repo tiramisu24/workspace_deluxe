@@ -3,6 +3,7 @@ package us.kbase.workspace.database.mongo;
 import java.io.IOException;
 import java.io.InputStream;
 
+import us.kbase.common.service.KBaseObjectMapper;
 import us.kbase.typedobj.core.MD5;
 import us.kbase.workspace.database.mongo.exceptions.BlobStoreCommunicationException;
 import us.kbase.workspace.database.mongo.exceptions.NoSuchBlobException;
@@ -20,7 +21,7 @@ import com.mongodb.gridfs.GridFSInputFile;
 
 public class GridFSBackend implements BlobStore {
 	
-	private static final ObjectMapper MAPPER = new ObjectMapper();
+	private static final ObjectMapper MAPPER = new KBaseObjectMapper();
 	
 	private final GridFS gfs;
 	

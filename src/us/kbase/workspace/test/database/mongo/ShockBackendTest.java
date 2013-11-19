@@ -16,6 +16,7 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.DB;
 
+import us.kbase.common.service.KBaseObjectMapper;
 import us.kbase.common.test.TestException;
 import us.kbase.shock.client.ShockNodeId;
 import us.kbase.typedobj.core.AbsoluteTypeDefId;
@@ -29,7 +30,7 @@ import us.kbase.workspace.test.WorkspaceTestCommon;
 
 public class ShockBackendTest {
 	
-	private static final ObjectMapper MAPPER = new ObjectMapper();
+	private static final ObjectMapper MAPPER = new KBaseObjectMapper();
 	
 	private static ShockBackend sb;
 	
