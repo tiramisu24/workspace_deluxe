@@ -1,8 +1,12 @@
 package us.kbase.workspace.database;
 
+import java.io.IOException;
+
+import us.kbase.common.service.JsonTreeTraversingParser;
 import us.kbase.common.service.KBaseObjectMapper;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -33,6 +37,19 @@ public class WorkspaceObjectData {
 		try {
 			return MAPPER.treeToValue(data, Object.class);
 		} catch (JsonProcessingException jpe) {
+			//this should never happen
+			throw new RuntimeException("something's dun broke", jpe);
+		}
+	}
+
+	public <T> T getData(TypeReference<T> type) {
+		try {
+			T ret = MAPPER.readValue(new JsonTreeTraversingParser(data, MAPPER), type);
+			return ret;
+		} catch (JsonProcessingException jpe) {
+			//this should never happen
+			throw new RuntimeException("something's dun broke", jpe);
+		} catch (IOException jpe) {
 			//this should never happen
 			throw new RuntimeException("something's dun broke", jpe);
 		}

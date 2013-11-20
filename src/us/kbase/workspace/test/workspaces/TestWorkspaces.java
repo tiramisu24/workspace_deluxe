@@ -28,6 +28,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.DB;
@@ -61,6 +62,7 @@ import us.kbase.workspace.database.mongo.MongoWorkspaceDB;
 import us.kbase.workspace.database.mongo.ShockBackend;
 import us.kbase.workspace.exceptions.WorkspaceAuthorizationException;
 import us.kbase.workspace.kbase.Util;
+import us.kbase.common.service.JsonByteString;
 import us.kbase.common.service.KBaseObjectMapper;
 import us.kbase.common.test.TestException;
 import us.kbase.workspace.test.WorkspaceTestCommon;
@@ -1343,18 +1345,18 @@ public class TestWorkspaces {
 		
 		WorkspaceIdentifier bigdataws = new WorkspaceIdentifier("bigdata");
 		ws.createWorkspace(userfoo, bigdataws.getName(), false, null);
-		Map<String, Object> data = new HashMap<String, Object>();
-		List<String> subdata = new LinkedList<String>();
+		Map<String, List<JsonByteString>> data = new HashMap<String, List<JsonByteString>>();
+		List<JsonByteString> subdata = new LinkedList<JsonByteString>();
 		data.put("subset", subdata);
 		for (int i = 0; i < 997008; i++) {
 			//force allocation of a new char[]
-			subdata.add("" + TEXT1000);
+			subdata.add(new JsonByteString("" + TEXT1000));
 		}
 //		printMem("*** created object ***");
 		ws.saveObjects(userfoo, bigdataws, Arrays.asList( //should work
 				new WorkspaceSaveObject(data, SAFE_TYPE, null, new Provenance(userfoo), false)));
 //		printMem("*** saved object ***");
-		subdata.add("" + TEXT1000);
+		subdata.add(new JsonByteString("" + TEXT1000));
 		try {
 			ws.saveObjects(userfoo, bigdataws, Arrays.asList(
 					new WorkspaceSaveObject(data, SAFE_TYPE, null, new Provenance(userfoo), false)));
@@ -1369,20 +1371,19 @@ public class TestWorkspaces {
 		
 //		printMem("*** released refs ***");
 		
-		@SuppressWarnings("unchecked")
-		Map<String, Object> newdata = (Map<String, Object>) ws.getObjects(
-				userfoo, Arrays.asList(new ObjectIdentifier(bigdataws, 1))).get(0).getData();
+		Map<String, List<JsonByteString>> newdata = ws.getObjects(
+				userfoo, Arrays.asList(new ObjectIdentifier(bigdataws, 1))).get(0).getData(
+						new TypeReference<Map<String, List<JsonByteString>>>() {});
 //		printMem("*** retrieved object ***");
 //		System.gc();
 //		printMem("*** ran gc after retrieve ***");
 		
 		assertThat("correct obj keys", newdata.keySet(),
 				is((Set<String>) new HashSet<String>(Arrays.asList("subset"))));
-		@SuppressWarnings("unchecked")
-		List<String> newsd = (List<String>) newdata.get("subset");
+		List<JsonByteString> newsd = (List<JsonByteString>) newdata.get("subset");
 		assertThat("correct subdata size", newsd.size(), is(997008));
-		for (String s: newsd) {
-			assertThat("correct string in subdata", s, is(TEXT1000));
+		for (JsonByteString s: newsd) {
+			assertThat("correct string in subdata", s.textValue(), is(TEXT1000));
 		}
 //		newdata = null;
 //		newsd = null;

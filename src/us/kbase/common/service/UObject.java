@@ -1,6 +1,8 @@
 package us.kbase.common.service;
 
 import java.io.IOException;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -324,6 +326,38 @@ public class UObject {
 	public static JsonNode transformObjectToJackson(Object obj) {
 		return mapper.valueToTree(obj);
 		//return transformStringToJackson(transformObjectToString(obj));
+	}
+
+	/**
+	 * Helper method for transformation large POJO into Jackson tree.
+	 */
+	public static JsonNode transformLargeObjectToJackson(Object obj) {
+		try {
+			final PipedInputStream pis = new PipedInputStream(10000);
+			PipedOutputStream pos = new PipedOutputStream(pis);
+			final JsonNode[] ret = new JsonNode[] { null };
+			final IOException[] err = new IOException[] { null };
+			Thread reader = new Thread(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						ret[0] = mapper.readTree(pis);
+					} catch (IOException ex) {
+						err[0] = ex;
+					}
+				}
+			});
+			reader.start();
+			mapper.writeValue(pos, obj);
+			reader.join();
+			if (err[0] != null)
+				throw err[0];
+			return ret[0];
+		} catch (IOException ex) {
+			throw new IllegalStateException(ex);
+		} catch (InterruptedException ex) {
+			throw new IllegalStateException(ex);
+		}
 	}
 
 	/**

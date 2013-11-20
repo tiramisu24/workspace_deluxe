@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import us.kbase.common.service.KBaseObjectMapper;
+import us.kbase.common.service.UObject;
 import us.kbase.typedobj.core.TypeDefId;
 import us.kbase.typedobj.core.TypedObjectValidationReport;
 import us.kbase.workspace.database.ObjectIDNoWSNoVer;
@@ -63,8 +64,10 @@ public class WorkspaceSaveObject {
 		final JsonNode retdata;
 		if (!(data instanceof JsonNode)) {
 			try {
-				retdata = MAPPER.valueToTree(data);
+				retdata = UObject.transformLargeObjectToJackson(data);
 			} catch (IllegalArgumentException iae) {
+				throw new IllegalArgumentException("Cannot serialize data", iae);
+			} catch (IllegalStateException iae) {
 				throw new IllegalArgumentException("Cannot serialize data", iae);
 			}
 		} else {
