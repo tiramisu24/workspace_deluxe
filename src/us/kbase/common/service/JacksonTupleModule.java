@@ -26,6 +26,9 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.module.SimpleSerializers;
 import com.fasterxml.jackson.databind.util.TokenBuffer;
 
+/**
+ * This is part of KBaseObjectMapper settings which set up json (de)serializers for Tuples and UObject. 
+ */
 @SuppressWarnings("serial")
 public class JacksonTupleModule extends SimpleModule {
 	public JacksonTupleModule() {

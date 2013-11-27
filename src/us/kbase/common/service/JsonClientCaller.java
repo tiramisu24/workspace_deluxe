@@ -110,7 +110,7 @@ public class JsonClientCaller {
 		HttpURLConnection conn = setupCall(authRequired);
 		String id = ("" + Math.random()).replace(".", "");
 		// Calculate content-length before
-		final int[] sizeWrapper = new int[] {0};
+		final long[] sizeWrapper = new long[] {0};
 		OutputStream os = new OutputStream() {
 			@Override
 			public void write(int b) {sizeWrapper[0]++;}

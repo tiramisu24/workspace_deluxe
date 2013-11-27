@@ -64,7 +64,7 @@ public class WorkspaceSaveObject {
 		final JsonNode retdata;
 		if (!(data instanceof JsonNode)) {
 			try {
-				retdata = UObject.transformLargeObjectToJackson(data);
+				retdata = UObject.transformObjectToJackson(data);
 			} catch (IllegalArgumentException iae) {
 				throw new IllegalArgumentException("Cannot serialize data", iae);
 			} catch (IllegalStateException iae) {

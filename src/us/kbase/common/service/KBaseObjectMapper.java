@@ -1,12 +1,21 @@
 package us.kbase.common.service;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Writer;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.core.SerializableString;
+import com.fasterxml.jackson.core.io.IOContext;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.DeserializationConfig;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -15,7 +24,9 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.cfg.DeserializerFactoryConfig;
 import com.fasterxml.jackson.databind.deser.BeanDeserializerFactory;
 import com.fasterxml.jackson.databind.deser.DefaultDeserializationContext;
@@ -36,9 +47,54 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @SuppressWarnings("serial")
 public class KBaseObjectMapper extends ObjectMapper {
 	public KBaseObjectMapper() {
-		super(null, null, new DefaultDeserializationContext.Impl(new MyBeanDeserializerFactory(
-	            new DeserializerFactoryConfig())));
+		super(new KBaseJsonFactory(), null, new DefaultDeserializationContext.Impl(
+				new KBaseBeanDeserializerFactory(new DeserializerFactoryConfig())));
+		getFactory().setCodec(this);
 		registerModule(new JacksonTupleModule());
+	}
+	
+	public void sortKeysInParsingTree(boolean sort) {
+		configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, sort);
+	}
+	
+	@Override
+	@SuppressWarnings("unchecked")
+    public <T extends JsonNode> T valueToTree(Object fromValue)
+    		throws IllegalArgumentException {
+		KBaseJsonTreeGenerator gen = new KBaseJsonTreeGenerator(this);
+        //if (fromValue == null) return null;
+        //TokenBuffer buf = new TokenBuffer(this);
+        JsonNode result;
+        try {
+            writeValue(gen, fromValue);
+            result = gen.getTree();
+        } catch (IOException e) { // should not occur, no real i/o...
+            throw new IllegalArgumentException(e.getMessage(), e);
+        }
+        return (T) result;
+    } 
+	
+	public static class KBaseJsonFactory extends MappingJsonFactory {
+		@Override
+	    protected JsonParser _createParser(InputStream in, IOContext ctxt)
+	    		throws IOException, JsonParseException {
+			return new KBaseJsonParser(this, in);
+		}
+		
+		@Override
+		protected JsonGenerator _createUTF8Generator(OutputStream out,
+				IOContext ctxt) throws IOException {
+	        KBaseJsonGenerator gen = new KBaseJsonGenerator(ctxt,
+	                _generatorFeatures, _objectCodec, out);
+	        if (_characterEscapes != null) {
+	            gen.setCharacterEscapes(_characterEscapes);
+	        }
+	        SerializableString rootSep = _rootValueSeparator;
+	        if (rootSep != DefaultPrettyPrinter.DEFAULT_ROOT_VALUE_SEPARATOR) {
+	            gen.setRootValueSeparator(rootSep);
+	        }
+	        return gen;
+		}
 	}
 	
 	/**
@@ -48,8 +104,8 @@ public class KBaseObjectMapper extends ObjectMapper {
 	 * through JacksonTupleModule as we do for Tuples and UObjects because standard
 	 * json code is trying to find this deserializer by JavaType instead of by Class.
 	 */
-	public static class MyBeanDeserializerFactory extends BeanDeserializerFactory {
-		public MyBeanDeserializerFactory(DeserializerFactoryConfig cfg) {
+	public static class KBaseBeanDeserializerFactory extends BeanDeserializerFactory {
+		public KBaseBeanDeserializerFactory(DeserializerFactoryConfig cfg) {
 			super(cfg);
 		}
 		@Override
@@ -63,7 +119,7 @@ public class KBaseObjectMapper extends ObjectMapper {
 	        if (_factoryConfig == config) {
 	            return this;
 	        }
-	        return new MyBeanDeserializerFactory(config);
+	        return new KBaseBeanDeserializerFactory(config);
 	    }
 
 	    @Override
@@ -192,7 +248,13 @@ public class KBaseObjectMapper extends ObjectMapper {
 	            t = jp.nextToken();
 	        }
             // Correction for sorting keys made by rsutormin
-	        TreeMap<String, JsonNode> tempMap = new TreeMap<String, JsonNode>();
+	        boolean sortKeys = false;
+	        if (jp.getCodec() instanceof ObjectMapper) {
+	        	ObjectMapper m = (ObjectMapper)jp.getCodec();
+	        	sortKeys = m.getSerializationConfig().isEnabled(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
+	        }
+	        Map<String, JsonNode> tempMap = sortKeys ? new TreeMap<String, JsonNode>() :
+	        	new LinkedHashMap<String, JsonNode>();
 	        for (; t == JsonToken.FIELD_NAME; t = jp.nextToken()) {
 	            String fieldName = jp.getCurrentName();
 	            JsonNode value;
@@ -205,7 +267,7 @@ public class KBaseObjectMapper extends ObjectMapper {
 	                break;
 			    // Correction for packing strings into byte array made by rsutormin
 	            case VALUE_STRING:
-	                value = nodeFactorytextNode(jp.getText());
+	                value = nodeFactorytextNode(jp);
 	                break;
 	            default:
 	                value = deserializeAny(jp, ctxt, nodeFactory);
@@ -240,7 +302,7 @@ public class KBaseObjectMapper extends ObjectMapper {
 	                return node;
 		        // Correction for packing strings into byte array made by rsutormin
 	            case VALUE_STRING:
-	                node.add(nodeFactorytextNode(jp.getText()));
+	                node.add(nodeFactorytextNode(jp));
 	                break;
 	            default:
 	                node.add(deserializeAny(jp, ctxt, nodeFactory));
@@ -250,8 +312,18 @@ public class KBaseObjectMapper extends ObjectMapper {
 	    }
 
         // Correction for packing strings into byte array made by rsutormin
-	    private JsonByteString nodeFactorytextNode(String text) { 
-	    	return JsonByteString.valueOf(text); 
+	    private JsonByteString nodeFactorytextNode(JsonParser jp) throws JsonParseException, IOException {
+	    	if (jp.getCurrentToken() == JsonToken.VALUE_STRING && jp instanceof KBaseJsonParser) {
+	    		KBaseJsonParser kjp = (KBaseJsonParser)jp;
+	    		JsonByteString ret = new JsonByteString();
+	    		Writer w = ret.createWriter();
+	    		kjp.writeTextIntoWriter(w);
+	    		w.close();
+	    		return ret;
+	    	} else {
+	    		String text = jp.getText();
+	    		return JsonByteString.valueOf(text);
+	    	}
 	    }
 
 	    protected final JsonNode deserializeAny(JsonParser jp, DeserializationContext ctxt,
@@ -284,7 +356,7 @@ public class KBaseObjectMapper extends ObjectMapper {
 
 		    // Correction for packing strings into byte array made by rsutormin
 	        case VALUE_STRING:
-	            return nodeFactorytextNode(jp.getText());
+	            return nodeFactorytextNode(jp);
 
 	        case VALUE_NUMBER_INT:
 	            {
