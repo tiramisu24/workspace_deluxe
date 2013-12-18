@@ -72,11 +72,11 @@ public class ShockBackendTest {
 		TypeData faketd = new TypeData(MAPPER.valueToTree(data), wt, subdata); //use same data to get same chksum
 		MD5 tdfakemd = new MD5(faketd.getChksum());
 		@SuppressWarnings("unchecked")
-		Map<String, Object> ret = MAPPER.treeToValue(sb.getBlob(tdfakemd), Map.class);
+		Map<String, Object> ret = MAPPER.treeToValue(sb.getBlob(tdfakemd, 10L), Map.class);
 		assertThat("Shock data returned correctly", ret, is(data));
 		sb.removeBlob(tdfakemd);
 		try {
-			sb.getBlob(tdfakemd);
+			sb.getBlob(tdfakemd, 10L);
 			fail("Got non-existant blob");
 		} catch (NoSuchBlobException nb) {
 			assertThat("correct exception msg", nb.getLocalizedMessage(),
@@ -86,7 +86,7 @@ public class ShockBackendTest {
 		data.put("keyfoo", "value");
 		TypeData badtd = new TypeData(MAPPER.valueToTree(baddata), wt, subdata);
 		try {
-			sb.getBlob(new MD5(badtd.getChksum()));
+			sb.getBlob(new MD5(badtd.getChksum()), 10L);
 			fail("Got non-existant blob");
 		} catch (NoSuchBlobException nb) {
 			assertThat("correct exception msg", nb.getLocalizedMessage(),

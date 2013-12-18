@@ -45,6 +45,8 @@ public class ShockBackend implements BlobStore {
 	private DBCollection mongoCol;
 	
 	private static final String IDX_UNIQ = "unique";
+	private static final long MAX_BUFFER_SIZE = 10000000;
+	private static final long MIN_BUFFER_SIZE = 10000;
 	
 	public ShockBackend(final DB mongoDB, final String collectionPrefix,
 			final URL url, final String user, final String password)
@@ -210,18 +212,18 @@ public class ShockBackend implements BlobStore {
 	}
 
 	@Override
-	public JsonNode getBlob(final MD5 md5) throws
+	public JsonNode getBlob(final MD5 md5, final long size) throws
 			BlobStoreAuthorizationException, BlobStoreCommunicationException,
 			NoSuchBlobException {
 		checkAuth();
 		final String node = getNode(md5);
 		
 		
-		//TODO allocate buffer intelligently based on size)
 		final OutputStreamToInputStream<JsonNode> osis =
 				new OutputStreamToInputStream<JsonNode>(true,
 						ExecutorServiceFactory.getExecutor(
-								ExecutionModel.THREAD_PER_INSTANCE), 10000000) { //speeds up by 2-3x
+								ExecutionModel.THREAD_PER_INSTANCE),
+								getBufferSize(size)) { //speeds up by 2-3x
 					
 			@Override
 			protected JsonNode doRead(InputStream is) throws Exception {
@@ -254,6 +256,13 @@ public class ShockBackend implements BlobStore {
 		} catch (ExecutionException ee) {
 			throw new RuntimeException("Something is broken", ee);
 		}
+	}
+
+	private int getBufferSize(long size) {
+		size = (long) (size * 1.2);
+		size = Math.max(size, MIN_BUFFER_SIZE);
+		size = Math.min(size, MAX_BUFFER_SIZE);
+		return (int) size;
 	}
 
 	@Override

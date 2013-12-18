@@ -1915,7 +1915,8 @@ public class MongoWorkspaceDB implements WorkspaceDatabase {
 			} else {
 				final JsonNode data;
 				try {
-					data = blob.getBlob(new MD5(meta.getCheckSum()));
+					data = blob.getBlob(new MD5(meta.getCheckSum()),
+							meta.getSize());
 				} catch (BlobStoreCommunicationException e) {
 					throw new WorkspaceCommunicationException(
 							e.getLocalizedMessage(), e);

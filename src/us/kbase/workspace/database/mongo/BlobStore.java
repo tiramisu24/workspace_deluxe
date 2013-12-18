@@ -12,7 +12,21 @@ public interface BlobStore {
 	public void saveBlob(MD5 md5, JsonNode data) throws BlobStoreAuthorizationException,
 		BlobStoreCommunicationException;
 	
-	public JsonNode getBlob(MD5 md5) throws BlobStoreAuthorizationException,
+	/** 
+	 * Retrieve a blob from the blob store.
+	 * @param md5 - the md5 of the blob to retrive.
+	 * @param size - the size of the object. This is used as a hint to set the
+	 * buffer size when reading the object for speed purposes, and does not need
+	 * to be exact.
+	 * @return the object stored in the blob store.
+	 * @throws BlobStoreAuthorizationException if the connection to the blob
+	 * storage system could not be authorized.
+	 * @throws BlobStoreCommunicationException - if there was a communication
+	 * error with the blob store.
+	 * @throws NoSuchBlobException - if there is no blob corresponding to the
+	 * md5.
+	 */
+	public JsonNode getBlob(MD5 md5, long size) throws BlobStoreAuthorizationException,
 		BlobStoreCommunicationException, NoSuchBlobException;
 	
 	/**

@@ -508,7 +508,7 @@ public class TimeReadWrite {
 		@Override
 		public int performReads() throws Exception {
 			for (MD5 md5: md5s) {
-				sb.getBlob(md5);
+				sb.getBlob(md5, data.length);
 			}
 			return 0;
 		}
@@ -548,7 +548,7 @@ public class TimeReadWrite {
 		@Override
 		public int performReads() throws Exception {
 			for (MD5 md5: md5s) {
-				gfsb.getBlob(md5);
+				gfsb.getBlob(md5, data.length);
 			}
 			return 0;
 		}

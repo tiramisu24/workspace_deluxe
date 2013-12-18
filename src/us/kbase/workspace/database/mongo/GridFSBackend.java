@@ -72,8 +72,8 @@ public class GridFSBackend implements BlobStore {
 	}
 
 	@Override
-	public JsonNode getBlob(MD5 md5) throws NoSuchBlobException,
-			BlobStoreCommunicationException {
+	public JsonNode getBlob(final MD5 md5, long size)
+			throws NoSuchBlobException, BlobStoreCommunicationException {
 		final DBObject query = new BasicDBObject();
 		query.put(Fields.MONGO_ID, md5.getMD5());
 		final GridFSDBFile out;
