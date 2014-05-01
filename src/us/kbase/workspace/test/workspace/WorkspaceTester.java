@@ -134,9 +134,9 @@ public class WorkspaceTester {
 			});
 		} else {
 			tests = Arrays.asList(new Object[][] {
-					{"mongo", "mongo", null},
-					{"mongoUseFile", "mongo", 1},
-					{"shock", "shock", null}
+					//{"mongo", "mongo", null},
+					{"mongoUseFile", "mongo", 1} /*,
+					{"shock", "shock", null}*/
 			});
 		}
 		printMem("*** startup complete ***");

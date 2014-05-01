@@ -10,9 +10,11 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import us.kbase.common.service.JsonTokenStream;
 import us.kbase.common.service.UObject;
@@ -142,6 +144,8 @@ public class TypedObjectValidationReport {
 		//return idRefManager.getAllIds();
 	}
 	
+	static Map<File, Exception> openFiles = new HashMap<File, Exception>();
+	
 	public Writable createJsonWritable() {
 		if (sorted == false && cacheForSorting == null &&
 				fileForSorting == null) {
@@ -155,7 +159,11 @@ public class TypedObjectValidationReport {
 				if (cacheForSorting != null) {
 					os.write(cacheForSorting);
 				} else if (fileForSorting != null) {
+					if (openFiles.containsKey(fileForSorting))
+						throw new IllegalStateException("Already open", openFiles.get(fileForSorting));
+					//System.out.println(System.currentTimeMillis() + ": Open " + fileForSorting);
 					InputStream is = new FileInputStream(fileForSorting);
+					openFiles.put(fileForSorting, new Exception());
 					byte[] buffer = new byte[10000];
 					while (true) {
 						int len = is.read(buffer);
@@ -165,6 +173,8 @@ public class TypedObjectValidationReport {
 							os.write(buffer, 0, len);
 					}
 					is.close();
+					openFiles.remove(fileForSorting);
+					//System.out.println(System.currentTimeMillis() + ": Close " + fileForSorting);
 				} else {
 					relabelWsIdReferencesIntoWriter(os);
 				}
@@ -324,7 +334,10 @@ public class TypedObjectValidationReport {
 
 	private void nullifySortCacheFile() {
 		if (this.fileForSorting != null) {
+			if (openFiles.containsKey(fileForSorting))
+				throw new IllegalStateException("Wasn't closed", openFiles.get(fileForSorting));
 			this.fileForSorting.delete();
+			//System.out.println(System.currentTimeMillis() + ": Delete " + fileForSorting);
 			this.fileForSorting = null;
 		}
 	}

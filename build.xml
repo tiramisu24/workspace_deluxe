@@ -253,7 +253,7 @@
       <sysproperty key="test.user3" value="${test.user3}"/>
       <batchtest todir="${env.JENKINS_REPORT_DIR}">
         <fileset dir="${src}">
-          <include name="**/test/**/**Test.java"/>
+          <include name="**/test/**/WorkspaceLongTest.java"/>
         </fileset>
       </batchtest>
     </junit>

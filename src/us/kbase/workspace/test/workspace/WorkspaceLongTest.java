@@ -15,6 +15,7 @@ import java.util.Set;
 
 import junit.framework.Assert;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import us.kbase.common.service.UObject;
@@ -41,6 +42,7 @@ public class WorkspaceLongTest extends WorkspaceTester {
 		super(config, backend, maxMemoryUsePerCall);
 	}
 
+	@Ignore
 	@Test
 	public void saveWithBigData() throws Exception {
 //		System.gc();
@@ -109,7 +111,7 @@ public class WorkspaceLongTest extends WorkspaceTester {
 //		printMem("*** ran gc, exiting saveWithBigMeta ***");
 	}
 	
-	@Test(timeout=60000)
+	@Test(timeout=360000)
 	public void tenKrefs() throws Exception {
 		final String specRef =
 				"module Test10KRefs {\n" +
@@ -185,6 +187,7 @@ public class WorkspaceLongTest extends WorkspaceTester {
 				is(expectedRefs));
 	}
 	
+	@Ignore
 	@Test(timeout=60000)
 	public void unicode() throws Exception {
 		WorkspaceUser userfoo = new WorkspaceUser("foo");
@@ -236,6 +239,7 @@ public class WorkspaceLongTest extends WorkspaceTester {
 		assertThat("value correct", (String) newdata2.get(test), is("foo"));
 	}
 	
+	@Ignore
 	@Test
 	public void listObjectsPagination() throws Exception {
 		WorkspaceUser user = new WorkspaceUser("pagUser");
