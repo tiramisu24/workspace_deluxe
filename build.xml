@@ -235,6 +235,7 @@
       <isset property="test.mongo.pwd" />
     </condition>
     <junit fork="yes" maxmemory="3G" failureproperty="test.failed">
+      <jvmarg value="-javaagent:file-leak-detector-1.7-jar-with-dependencies.jar" />
       <classpath refid="test.classpath"/>
       <formatter type="plain" usefile="false" />
       <formatter type="xml" usefile="true" if="env.JENKINS_REPORT_DIR"/>
