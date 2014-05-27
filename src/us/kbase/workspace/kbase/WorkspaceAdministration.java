@@ -15,6 +15,7 @@ import us.kbase.auth.AuthException;
 import us.kbase.auth.AuthService;
 import us.kbase.auth.AuthToken;
 import us.kbase.common.service.UObject;
+import us.kbase.typedobj.core.AbsoluteTypeDefId;
 import us.kbase.typedobj.exceptions.BadJsonSchemaDocumentException;
 import us.kbase.typedobj.exceptions.InstanceValidationException;
 import us.kbase.typedobj.exceptions.NoSuchPrivilegeException;
@@ -140,6 +141,21 @@ public class WorkspaceAdministration {
 			if ("removeModuleOwnership".equals(fn)) {
 				final RemoveModuleOwnershipParams params = getParams(c, RemoveModuleOwnershipParams.class);
 				wsmeth.removeModuleOwnership(params, null, true);
+				return null;
+			}
+			if ("installQuery".equals(fn)) {
+				@SuppressWarnings("unchecked")
+				List<String> types = (List<String>) c.get("types");
+				List<AbsoluteTypeDefId> restypes = new ArrayList<AbsoluteTypeDefId>();
+				for (String t: types) {
+					restypes.add(AbsoluteTypeDefId.fromAbsoluteTypeString(t));
+				}
+				
+				String name = (String) c.get("name");
+				String query = (String) c.get("query");
+				String desc = (String) c.get("description");
+				int pc = (int) c.get("paramCount");
+				ws.installQuery(restypes, name, query, desc, pc);
 				return null;
 			}
 		}

@@ -6353,6 +6353,82 @@ sub list_all_types
 
 
 
+=head2 list_queries
+
+  $info = $obj->list_queries()
+
+=over 4
+
+=item Parameter and return types
+
+=begin html
+
+<pre>
+$info is a reference to a hash where the key is a string and the value is a reference to a list containing 3 items:
+	0: (types) a reference to a list where each element is a Workspace.type_string
+	1: (description) a string
+	2: (param_count) an int
+type_string is a string
+
+</pre>
+
+=end html
+
+=begin text
+
+$info is a reference to a hash where the key is a string and the value is a reference to a list containing 3 items:
+	0: (types) a reference to a list where each element is a Workspace.type_string
+	1: (description) a string
+	2: (param_count) an int
+type_string is a string
+
+
+=end text
+
+=item Description
+
+mapping is from query name to query information
+
+=back
+
+=cut
+
+sub list_queries
+{
+    my($self, @args) = @_;
+
+# Authentication: none
+
+    if ((my $n = @args) != 0)
+    {
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error =>
+							       "Invalid argument count for function list_queries (received $n, expecting 0)");
+    }
+
+    my $result = $self->{client}->call($self->{url}, {
+	method => "Workspace.list_queries",
+	params => \@args,
+    });
+    if ($result) {
+	if ($result->is_error) {
+	    Bio::KBase::Exceptions::JSONRPC->throw(error => $result->error_message,
+					       code => $result->content->{error}->{code},
+					       method_name => 'list_queries',
+					       data => $result->content->{error}->{error} # JSON::RPC::ReturnObject only supports JSONRPC 1.1 or 1.O
+					      );
+	} else {
+	    return wantarray ? @{$result->result} : $result->result->[0];
+	}
+    } else {
+        Bio::KBase::Exceptions::HTTP->throw(error => "Error invoking method list_queries",
+					    status_line => $self->{client}->status_line,
+					    method_name => 'list_queries',
+				       );
+    }
+}
+
+
+
 =head2 administer
 
   $response = $obj->administer($command)

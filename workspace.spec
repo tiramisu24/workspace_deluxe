@@ -1527,6 +1527,10 @@ module Workspace {
 		returns (mapping<modulename, mapping<typename, typever>>)
 		authentication optional;
 	
+	/* mapping is from query name to query information */
+	funcdef list_queries() returns(mapping<string, tuple<list<type_string> types,
+		string description, int param_count>> info);
+	
 	/* The administration interface. */
 	funcdef administer(UnspecifiedObject command)
 		returns(UnspecifiedObject response) authentication required;

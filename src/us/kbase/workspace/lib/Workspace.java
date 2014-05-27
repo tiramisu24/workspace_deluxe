@@ -1247,8 +1247,22 @@ public class Workspace {
 		return ret;
 	}
 	
-	/* admin method only, should not be exposed in public API
-	 */
+	// admin method only
+	public void installQuery(final List<AbsoluteTypeDefId> types, final String name,
+			final String query, final String description, final int paramCounts) {
+		db.installQuery(types, name, query, description, paramCounts);
+	}
+	
+	public Map<String, List<Object>> listQueries() {
+		return db.listQueries();
+	}
+	
+	public List<ObjectInformation> runQuery(final String name, final List<Object> args) {
+		return null;
+	}
+	
+	
+	// admin method only, should not be exposed in public API
 	public Set<WorkspaceUser> getAllWorkspaceOwners()
 			throws WorkspaceCommunicationException {
 		return db.getAllWorkspaceOwners();

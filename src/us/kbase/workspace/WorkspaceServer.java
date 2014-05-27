@@ -7,6 +7,7 @@ import us.kbase.common.service.JsonServerMethod;
 import us.kbase.common.service.JsonServerServlet;
 import us.kbase.common.service.Tuple11;
 import us.kbase.common.service.Tuple12;
+import us.kbase.common.service.Tuple3;
 import us.kbase.common.service.Tuple7;
 import us.kbase.common.service.Tuple9;
 import us.kbase.common.service.UObject;
@@ -30,6 +31,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.slf4j.LoggerFactory;
@@ -38,6 +40,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.AppenderBase;
+import ch.qos.logback.core.rolling.helper.IntegerTokenConverter;
 
 //import org.apache.commons.lang3.builder.ToStringBuilder;
 
@@ -1653,6 +1656,29 @@ public class WorkspaceServer extends JsonServerServlet {
 		checkAddlArgs(params.getAdditionalProperties(), params.getClass());
 		returnVal = ws.listAllTypes(params.getWithEmptyModules() != null && params.getWithEmptyModules() != 0L);
         //END list_all_types
+        return returnVal;
+    }
+
+    /**
+     * <p>Original spec-file function name: list_queries</p>
+     * <pre>
+     * mapping is from query name to query information
+     * </pre>
+     * @return   parameter "info" of mapping from String to tuple of size 3: parameter "types" of list of original type "type_string" (A type string. Specifies the type and its version in a single string in the format [module].[typename]-[major].[minor]: module - a string. The module name of the typespec containing the type. typename - a string. The name of the type as assigned by the typedef statement. major - an integer. The major version of the type. A change in the major version implies the type has changed in a non-backwards compatible way. minor - an integer. The minor version of the type. A change in the minor version implies that the type has changed in a way that is backwards compatible with previous type definitions. In many cases, the major and minor versions are optional, and if not provided the most recent version will be used. Example: MyModule.MyType-3.1), parameter "description" of String, parameter "param_count" of Long
+     */
+    @JsonServerMethod(rpc = "Workspace.list_queries")
+    public Map<String,Tuple3<List<String>, String, Long>> listQueries() throws Exception {
+        Map<String,Tuple3<List<String>, String, Long>> returnVal = null;
+        //BEGIN list_queries
+		Map<String, List<Object>> q = ws.listQueries();
+		returnVal = new HashMap<String, Tuple3<List<String>,String,Long>>();
+		for (Entry<String, List<Object>> e: q.entrySet()) {
+			returnVal.put(e.getKey(), new Tuple3<List<String>, String, Long>()
+					.withE1((List<String>) e.getValue().get(0))
+					.withE2((String) e.getValue().get(1))
+					.withE3(new Long((Integer)e.getValue().get(2))));
+		}
+        //END list_queries
         return returnVal;
     }
 

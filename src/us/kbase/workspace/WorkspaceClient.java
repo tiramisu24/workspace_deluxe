@@ -13,6 +13,7 @@ import us.kbase.common.service.JsonClientCaller;
 import us.kbase.common.service.JsonClientException;
 import us.kbase.common.service.Tuple11;
 import us.kbase.common.service.Tuple12;
+import us.kbase.common.service.Tuple3;
 import us.kbase.common.service.Tuple7;
 import us.kbase.common.service.Tuple9;
 import us.kbase.common.service.UObject;
@@ -1113,6 +1114,22 @@ public class WorkspaceClient {
         args.add(params);
         TypeReference<List<Map<String,Map<String,String>>>> retType = new TypeReference<List<Map<String,Map<String,String>>>>() {};
         List<Map<String,Map<String,String>>> res = caller.jsonrpcCall("Workspace.list_all_types", args, retType, true, false);
+        return res.get(0);
+    }
+
+    /**
+     * <p>Original spec-file function name: list_queries</p>
+     * <pre>
+     * mapping is from query name to query information
+     * </pre>
+     * @return   parameter "info" of mapping from String to tuple of size 3: parameter "types" of list of original type "type_string" (A type string. Specifies the type and its version in a single string in the format [module].[typename]-[major].[minor]: module - a string. The module name of the typespec containing the type. typename - a string. The name of the type as assigned by the typedef statement. major - an integer. The major version of the type. A change in the major version implies the type has changed in a non-backwards compatible way. minor - an integer. The minor version of the type. A change in the minor version implies that the type has changed in a way that is backwards compatible with previous type definitions. In many cases, the major and minor versions are optional, and if not provided the most recent version will be used. Example: MyModule.MyType-3.1), parameter "description" of String, parameter "param_count" of Long
+     * @throws IOException if an IO exception occurs
+     * @throws JsonClientException if a JSON RPC exception occurs
+     */
+    public Map<String,Tuple3<List<String>, String, Long>> listQueries() throws IOException, JsonClientException {
+        List<Object> args = new ArrayList<Object>();
+        TypeReference<List<Map<String,Tuple3<List<String>, String, Long>>>> retType = new TypeReference<List<Map<String,Tuple3<List<String>, String, Long>>>>() {};
+        List<Map<String,Tuple3<List<String>, String, Long>>> res = caller.jsonrpcCall("Workspace.list_queries", args, retType, true, false);
         return res.get(0);
     }
 

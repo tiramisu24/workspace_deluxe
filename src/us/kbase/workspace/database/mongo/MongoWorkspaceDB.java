@@ -3324,4 +3324,34 @@ public class MongoWorkspaceDB implements WorkspaceDatabase {
 			assertThat("objectid is revised to existing object", md.getObjectId(), is(1L));
 		}
 	}
+
+	@Override
+	public void installQuery(List<AbsoluteTypeDefId> types, String name,
+			String query, String description, int paramCounts) {
+		List<String> t = new ArrayList<String>();
+		for (AbsoluteTypeDefId at: types) {
+			t.add(at.getTypeString());
+		}
+		DBObject q = new BasicDBObject();
+		q.put("types", t);
+		q.put("name", name);
+		q.put("query", query);
+		q.put("description", description);
+		q.put("paramCounts", paramCounts);
+		wsmongo.getCollection("queries").save(q);
+	}
+	
+	@Override
+	public Map<String, List<Object>> listQueries() {
+		DBCursor res = wsmongo.getCollection("queries").find();
+		Map<String, List<Object>> ret = new HashMap<String, List<Object>>();
+		for (DBObject d: res) {
+			List<Object> data = new ArrayList<Object>();
+			data.add(d.get("types"));
+			data.add(d.get("description"));
+			data.add(d.get("paramCounts"));
+			ret.put((String) d.get("name"), data);
+		}
+		return ret;
+	}
 }

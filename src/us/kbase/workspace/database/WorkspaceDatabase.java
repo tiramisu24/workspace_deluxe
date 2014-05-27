@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import us.kbase.typedobj.core.AbsoluteTypeDefId;
 import us.kbase.typedobj.core.ObjectPaths;
 import us.kbase.typedobj.core.TempFilesManager;
 import us.kbase.typedobj.core.TypeDefId;
@@ -205,5 +206,10 @@ public interface WorkspaceDatabase {
 	public TempFilesManager getTempFilesManager();
 
 	public void setResourceUsageConfiguration(ResourceUsageConfiguration rescfg);
+
+	public void installQuery(List<AbsoluteTypeDefId> types, String name,
+			String query, String description, int paramCounts);
+
+	public Map<String, List<Object>> listQueries();
 
 }
