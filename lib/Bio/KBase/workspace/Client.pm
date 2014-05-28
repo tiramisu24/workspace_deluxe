@@ -6429,6 +6429,130 @@ sub list_queries
 
 
 
+=head2 run_query
+
+  $return = $obj->run_query($queryname, $parameters)
+
+=over 4
+
+=item Parameter and return types
+
+=begin html
+
+<pre>
+$queryname is a string
+$parameters is a reference to a list where each element is an UnspecifiedObject, which can hold any non-null object
+$return is a reference to a list where each element is a Workspace.object_info
+object_info is a reference to a list containing 11 items:
+	0: (objid) a Workspace.obj_id
+	1: (name) a Workspace.obj_name
+	2: (type) a Workspace.type_string
+	3: (save_date) a Workspace.timestamp
+	4: (version) an int
+	5: (saved_by) a Workspace.username
+	6: (wsid) a Workspace.ws_id
+	7: (workspace) a Workspace.ws_name
+	8: (chsum) a string
+	9: (size) an int
+	10: (meta) a Workspace.usermeta
+obj_id is an int
+obj_name is a string
+type_string is a string
+timestamp is a string
+username is a string
+ws_id is an int
+ws_name is a string
+usermeta is a reference to a hash where the key is a string and the value is a string
+
+</pre>
+
+=end html
+
+=begin text
+
+$queryname is a string
+$parameters is a reference to a list where each element is an UnspecifiedObject, which can hold any non-null object
+$return is a reference to a list where each element is a Workspace.object_info
+object_info is a reference to a list containing 11 items:
+	0: (objid) a Workspace.obj_id
+	1: (name) a Workspace.obj_name
+	2: (type) a Workspace.type_string
+	3: (save_date) a Workspace.timestamp
+	4: (version) an int
+	5: (saved_by) a Workspace.username
+	6: (wsid) a Workspace.ws_id
+	7: (workspace) a Workspace.ws_name
+	8: (chsum) a string
+	9: (size) an int
+	10: (meta) a Workspace.usermeta
+obj_id is an int
+obj_name is a string
+type_string is a string
+timestamp is a string
+username is a string
+ws_id is an int
+ws_name is a string
+usermeta is a reference to a hash where the key is a string and the value is a string
+
+
+=end text
+
+=item Description
+
+
+
+=back
+
+=cut
+
+sub run_query
+{
+    my($self, @args) = @_;
+
+# Authentication: optional
+
+    if ((my $n = @args) != 2)
+    {
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error =>
+							       "Invalid argument count for function run_query (received $n, expecting 2)");
+    }
+    {
+	my($queryname, $parameters) = @args;
+
+	my @_bad_arguments;
+        (!ref($queryname)) or push(@_bad_arguments, "Invalid type for argument 1 \"queryname\" (value was \"$queryname\")");
+        (ref($parameters) eq 'ARRAY') or push(@_bad_arguments, "Invalid type for argument 2 \"parameters\" (value was \"$parameters\")");
+        if (@_bad_arguments) {
+	    my $msg = "Invalid arguments passed to run_query:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	    Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+								   method_name => 'run_query');
+	}
+    }
+
+    my $result = $self->{client}->call($self->{url}, {
+	method => "Workspace.run_query",
+	params => \@args,
+    });
+    if ($result) {
+	if ($result->is_error) {
+	    Bio::KBase::Exceptions::JSONRPC->throw(error => $result->error_message,
+					       code => $result->content->{error}->{code},
+					       method_name => 'run_query',
+					       data => $result->content->{error}->{error} # JSON::RPC::ReturnObject only supports JSONRPC 1.1 or 1.O
+					      );
+	} else {
+	    return wantarray ? @{$result->result} : $result->result->[0];
+	}
+    } else {
+        Bio::KBase::Exceptions::HTTP->throw(error => "Error invoking method run_query",
+					    status_line => $self->{client}->status_line,
+					    method_name => 'run_query',
+				       );
+    }
+}
+
+
+
 =head2 administer
 
   $response = $obj->administer($command)

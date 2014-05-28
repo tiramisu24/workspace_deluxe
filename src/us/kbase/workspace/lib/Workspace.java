@@ -1257,8 +1257,11 @@ public class Workspace {
 		return db.listQueries();
 	}
 	
-	public List<ObjectInformation> runQuery(final String name, final List<Object> args) {
-		return null;
+	public Set<ObjectInformation> runQuery(final WorkspaceUser user,
+			final String name, final List<Object> args)
+			throws WorkspaceCommunicationException, CorruptWorkspaceDBException {
+		
+		return db.runQuery(user, name, args);
 	}
 	
 	

@@ -1530,6 +1530,10 @@ module Workspace {
 	/* mapping is from query name to query information */
 	funcdef list_queries() returns(mapping<string, tuple<list<type_string> types,
 		string description, int param_count>> info);
+		
+	
+	funcdef run_query(string queryname, list<UnspecifiedObject> parameters)
+			returns(list<object_info>) authentication optional;
 	
 	/* The administration interface. */
 	funcdef administer(UnspecifiedObject command)

@@ -3325,9 +3325,11 @@ public class MongoWorkspaceDB implements WorkspaceDatabase {
 		}
 	}
 
+	//the following three fns are prototypes only - do NOT use in production code
 	@Override
 	public void installQuery(List<AbsoluteTypeDefId> types, String name,
 			String query, String description, int paramCounts) {
+		//need unique index on query name
 		List<String> t = new ArrayList<String>();
 		for (AbsoluteTypeDefId at: types) {
 			t.add(at.getTypeString());
@@ -3351,6 +3353,60 @@ public class MongoWorkspaceDB implements WorkspaceDatabase {
 			data.add(d.get("description"));
 			data.add(d.get("paramCounts"));
 			ret.put((String) d.get("name"), data);
+		}
+		return ret;
+	}
+
+	private static final String M_QRY_OBJ_PRJ = String.format("{%s: 1}",
+			Fields.TYPE_CHKSUM);
+	
+	@Override
+	public Set<ObjectInformation> runQuery(WorkspaceUser user, String queryname,
+			List<Object> args) throws WorkspaceCommunicationException, CorruptWorkspaceDBException {
+		@SuppressWarnings("unchecked")
+		Map<String, Object> q = wsjongo.getCollection("queries")
+				.findOne("{name: #}", queryname).as(Map.class);
+		if (q == null) {
+			throw new IllegalArgumentException("No such query: " + queryname);
+		}
+		int paramCount = (int) q.get("paramCounts");
+		if (args.size() != paramCount) {
+			throw new IllegalArgumentException(String.format(
+					"incorrect number of parameters: %s required", paramCount));
+		}
+		String qry = (String) q.get("query");
+		@SuppressWarnings("unchecked")
+		List<String> types = (List<String>) q.get("types");
+		//need to have finer grained control of what gets returned here
+		PermissionSet p = getPermissions(user, Permission.READ, false);
+		if (p.isEmpty()) {
+			return new HashSet<ObjectInformation>();
+		}
+		List<Long> wsids = new LinkedList<Long>();
+		for (ResolvedWorkspaceID ws: p.getWorkspaces()) {
+			wsids.add(ws.getID());
+		}
+		
+		Set<ObjectInformation> ret = new HashSet<ObjectInformation>();
+		for (String t: types) {
+			// this is totally unscalable, need limits here
+			String colname = TypeData.getTypeCollection(AbsoluteTypeDefId.fromTypeString(t));
+			@SuppressWarnings("rawtypes")
+			Iterable<Map> r = wsjongo.getCollection(colname).find(qry, args.toArray())
+					.projection(M_QRY_OBJ_PRJ).as(Map.class);
+			List<String> chksums = new LinkedList<String>();
+			for (@SuppressWarnings("rawtypes") Map m: r) {
+				chksums.add((String) m.get(Fields.TYPE_CHKSUM));
+			}
+			
+			final DBObject verq = new BasicDBObject();
+			verq.put(Fields.VER_WS_ID, new BasicDBObject("$in", wsids));
+			verq.put(Fields.VER_TYPE, t);
+			verq.put(Fields.VER_CHKSUM, new BasicDBObject("$in", chksums));
+			final List<Map<String, Object>> verobjs = query.queryCollection(
+					COL_WORKSPACE_VERS, verq, FLDS_LIST_OBJ_VER);
+			ret.addAll(generateObjectInfo(p, verobjs, true, true, false, true)
+					.values());
 		}
 		return ret;
 	}

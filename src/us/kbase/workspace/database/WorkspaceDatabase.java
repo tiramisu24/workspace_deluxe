@@ -212,4 +212,7 @@ public interface WorkspaceDatabase {
 
 	public Map<String, List<Object>> listQueries();
 
+	public Set<ObjectInformation> runQuery(WorkspaceUser user, String name,
+			List<Object> args) throws WorkspaceCommunicationException, CorruptWorkspaceDBException;
+
 }
