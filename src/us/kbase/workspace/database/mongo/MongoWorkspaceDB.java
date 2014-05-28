@@ -3330,6 +3330,7 @@ public class MongoWorkspaceDB implements WorkspaceDatabase {
 	public void installQuery(List<AbsoluteTypeDefId> types, String name,
 			String query, String description, int paramCounts) {
 		//need unique index on query name
+		//Actually, shouldn't be an AbosoluteTypeDefId - should be a TypeDef + the major version
 		List<String> t = new ArrayList<String>();
 		for (AbsoluteTypeDefId at: types) {
 			t.add(at.getTypeString());
