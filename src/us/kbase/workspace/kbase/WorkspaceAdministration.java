@@ -154,7 +154,7 @@ public class WorkspaceAdministration {
 				String name = (String) c.get("name");
 				String query = (String) c.get("query");
 				String desc = (String) c.get("description");
-				int pc = (int) c.get("paramCount");
+				int pc = (Integer) c.get("paramCount");
 				ws.installQuery(restypes, name, query, desc, pc);
 				return null;
 			}

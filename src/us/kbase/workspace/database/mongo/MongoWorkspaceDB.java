@@ -3370,7 +3370,7 @@ public class MongoWorkspaceDB implements WorkspaceDatabase {
 		if (q == null) {
 			throw new IllegalArgumentException("No such query: " + queryname);
 		}
-		int paramCount = (int) q.get("paramCounts");
+		int paramCount = (Integer) q.get("paramCounts");
 		if (args.size() != paramCount) {
 			throw new IllegalArgumentException(String.format(
 					"incorrect number of parameters: %s required", paramCount));
