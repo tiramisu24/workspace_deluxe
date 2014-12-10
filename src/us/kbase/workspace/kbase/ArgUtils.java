@@ -58,9 +58,11 @@ import us.kbase.workspace.database.WorkspaceUser;
  *
  */
 public class ArgUtils {
-	
-	private final static Logger LOGGER =
-			LoggerFactory.getLogger(ArgUtils.class);
+
+	//making the logger a static variable may cause glassfish permgen errors
+	private static Logger getLogger() {
+		return LoggerFactory.getLogger(ArgUtils.class);
+	}
 	
 	private final static DateTimeFormatter DATE_PARSER =
 			new DateTimeFormatterBuilder()
@@ -255,7 +257,7 @@ public class ArgUtils {
 				ret.add(null);
 			} else {
 				if (logObjects) {
-					LOGGER.info("Object {}/{}/{} {}", m.getWorkspaceId(),
+					getLogger().info("Object {}/{}/{} {}", m.getWorkspaceId(),
 							m.getObjectId(), m.getVersion(),
 							m.getTypeString());
 				}
@@ -301,7 +303,7 @@ public class ArgUtils {
 		
 		for (ObjectInformation m: info) {
 			if (logObjects) {
-				LOGGER.info("Object {}/{}/{} {}", m.getWorkspaceId(),
+				getLogger().info("Object {}/{}/{} {}", m.getWorkspaceId(),
 						m.getObjectId(), m.getVersion(), m.getTypeString());
 			}
 			ret.add(new Tuple12<String, String, String, Long, String, String, String,
