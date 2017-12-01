@@ -1,0 +1,655 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Objects &#8212; KBase Workspace 0.8.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.8.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Subsetting objects" href="getobjectsubdata.html" />
+    <link rel="prev" title="Workspaces" href="workspaces.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="objects">
+<span id="id1"></span><h1>Objects<a class="headerlink" href="#objects" title="Permalink to this headline">¶</a></h1>
+<p>This documentation describes some of the most common operations on objects
+in the workspace, with a focus on saving objects (see
+<a class="reference internal" href="api.html#apidocs"><span class="std std-ref">Workspace API documentation</span></a> for the full API). It assumes that
+a functional client is available (see <a class="reference internal" href="buildinitclient.html#buildinitclient"><span class="std std-ref">Build and initialize the workspace client</span></a>). The examples
+use the Python client, but translating to other clients is trivial.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Objects saved to the WSS cannot contain binary data anywhere within
+their hierarchy. Binary data must be encoded (e.g. via Base64) prior to
+saving to the WSS.</p>
+</div>
+<div class="section" id="save-an-object">
+<span id="saveobjects"></span><h2>Save an object<a class="headerlink" href="#save-an-object" title="Permalink to this headline">¶</a></h2>
+<p>The object will be saved as the type <code class="docutils literal"><span class="pre">SimpleObjects.SimpleObject-1.0</span></code>,
+defined as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="k">print</span> <span class="n">ws</span><span class="o">.</span><span class="n">get_type_info</span><span class="p">(</span><span class="s1">&#39;SimpleObjects.SimpleObject-1.0&#39;</span><span class="p">)[</span><span class="s1">&#39;spec_def&#39;</span><span class="p">]</span>
+<span class="o">/*</span>
+<span class="nd">@optional</span> <span class="n">opt</span>
+<span class="o">*/</span>
+<span class="n">typedef</span> <span class="n">structure</span> <span class="p">{</span>
+  <span class="nb">list</span><span class="o">&lt;</span><span class="n">mapping</span><span class="o">&lt;</span><span class="n">string</span><span class="p">,</span> <span class="nb">int</span><span class="o">&gt;&gt;</span> <span class="n">array_of_maps</span><span class="p">;</span>
+  <span class="nb">int</span> <span class="n">an_int</span><span class="p">;</span>
+  <span class="nb">float</span> <span class="n">a_float</span><span class="p">;</span>
+  <span class="n">string</span> <span class="n">a_string</span><span class="p">;</span>
+  <span class="nb">int</span> <span class="n">opt</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">SimpleObject</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Saving an object requires specifying either the name or id of the workspace,
+and for each object the name or id of the object, the type of the object,
+and the object data.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">16</span><span class="p">]:</span> <span class="n">obj</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;array_of_maps&#39;</span><span class="p">:</span> <span class="p">[],</span>
+   <span class="o">....</span><span class="p">:</span>        <span class="s1">&#39;an_int&#39;</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span>
+   <span class="o">....</span><span class="p">:</span>        <span class="s1">&#39;a_float&#39;</span><span class="p">:</span> <span class="mf">6.02e-23</span><span class="p">,</span>
+   <span class="o">....</span><span class="p">:</span>        <span class="s1">&#39;a_string&#39;</span><span class="p">:</span> <span class="s1">&#39;towel&#39;</span><span class="p">}</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">18</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">save_objects</span><span class="p">(</span>
+             <span class="p">{</span><span class="s1">&#39;workspace&#39;</span><span class="p">:</span> <span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;objects&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;simple&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;SimpleObjects.SimpleObject-1.0&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">obj</span>
+                           <span class="p">}</span>
+                          <span class="p">]</span>
+              <span class="p">})</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">18</span><span class="p">]:</span>
+<span class="p">[[</span><span class="mi">1</span><span class="p">,</span>                                    <span class="c1"># object numerical ID</span>
+  <span class="sa">u</span><span class="s1">&#39;simple&#39;</span><span class="p">,</span>                            <span class="c1"># object name</span>
+  <span class="sa">u</span><span class="s1">&#39;SimpleObjects.SimpleObject-1.0&#39;</span><span class="p">,</span>    <span class="c1"># object type</span>
+  <span class="sa">u</span><span class="s1">&#39;2015-12-14T04:11:55+0000&#39;</span><span class="p">,</span>          <span class="c1"># save or copy date of the object</span>
+  <span class="mi">1</span><span class="p">,</span>                                    <span class="c1"># version of the object</span>
+  <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>                         <span class="c1"># user that saved or copied the object</span>
+  <span class="mi">12</span><span class="p">,</span>                                   <span class="c1"># numerical workspace ID</span>
+  <span class="sa">u</span><span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>                       <span class="c1"># workspace name</span>
+  <span class="sa">u</span><span class="s1">&#39;6b76d883ffa1357e52e1020594317dd7&#39;</span><span class="p">,</span>  <span class="c1"># MD5 digest of the object</span>
+  <span class="mi">70</span><span class="p">,</span>                                   <span class="c1"># size of the object in bytes</span>
+  <span class="p">{}]]</span>                                  <span class="c1"># user provided metadata</span>
+</pre></div>
+</div>
+<p>Once created, an object’s numerical ID is permanent and unchangeable.</p>
+<p>The MD5 is calculated <em>after</em> any references are translated (see below) and
+the object <code class="docutils literal"><span class="pre">structure</span></code> and <code class="docutils literal"><span class="pre">mapping</span></code> keys are sorted.</p>
+<p>Saving an object that does not match the typespec causes an error:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">23</span><span class="p">]:</span> <span class="n">obj</span><span class="p">[</span><span class="s1">&#39;a_string&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">42</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">24</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">save_objects</span><span class="p">(</span>
+             <span class="p">{</span><span class="s1">&#39;workspace&#39;</span><span class="p">:</span> <span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;objects&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;simple2&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;SimpleObjects.SimpleObject-1.0&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">obj</span>
+                           <span class="p">}</span>
+                          <span class="p">]</span>
+              <span class="p">})</span>
+<span class="o">---------------------------------------------------------------------------</span>
+<span class="n">ServerError</span>                               <span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">)</span>
+<span class="o">&lt;</span><span class="n">ipython</span><span class="o">-</span><span class="nb">input</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mi">91</span><span class="n">a2d5e7f85e</span><span class="o">&gt;</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span><span class="p">()</span>
+      <span class="mi">3</span>               <span class="s1">&#39;objects&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;simple2&#39;</span><span class="p">,</span>
+      <span class="mi">4</span>                            <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;SimpleObjects.SimpleObject-1.0&#39;</span><span class="p">,</span>
+<span class="o">----&gt;</span> <span class="mi">5</span>                            <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">obj</span>
+      <span class="mi">6</span>                            <span class="p">}</span>
+      <span class="mi">7</span>                           <span class="p">]</span>
+
+<span class="o">*</span><span class="n">snip</span><span class="o">*</span>
+
+<span class="n">ServerError</span><span class="p">:</span> <span class="n">JSONRPCError</span><span class="p">:</span> <span class="o">-</span><span class="mf">32500.</span> <span class="n">Object</span> <span class="c1">#1, simple2 failed type checking:</span>
+<span class="n">instance</span> <span class="nb">type</span> <span class="p">(</span><span class="n">integer</span><span class="p">)</span> <span class="n">does</span> <span class="ow">not</span> <span class="n">match</span> <span class="nb">any</span> <span class="n">allowed</span> <span class="n">primitive</span> <span class="nb">type</span> <span class="p">(</span><span class="n">allowed</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;string&quot;</span><span class="p">]),</span> <span class="n">at</span> <span class="o">/</span><span class="n">a_string</span>
+<span class="o">*</span><span class="n">snip</span><span class="o">*</span>
+</pre></div>
+</div>
+<p>Saving an object with <code class="docutils literal"><span class="pre">null</span></code> s (or in Python’s case <code class="docutils literal"><span class="pre">None</span></code> s) where an
+<code class="docutils literal"><span class="pre">int</span></code>, <code class="docutils literal"><span class="pre">float</span></code>, or <code class="docutils literal"><span class="pre">string</span></code> is expected is allowed:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">21</span><span class="p">]:</span> <span class="n">obj</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;array_of_maps&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                <span class="s1">&#39;an_int&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                <span class="s1">&#39;a_float&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                <span class="s1">&#39;a_string&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">}</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">22</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">save_objects</span><span class="p">(</span>
+             <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+              <span class="s1">&#39;objects&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;nullobj&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;SimpleObjects.SimpleObject-1.0&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">obj</span>
+                           <span class="p">}</span>
+                          <span class="p">]</span>
+              <span class="p">})</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">22</span><span class="p">]:</span>
+<span class="p">[[</span><span class="mi">3</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;nullobj&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;SimpleObjects.SimpleObject-1.0&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;2015-12-14T22:58:55+0000&#39;</span><span class="p">,</span>
+  <span class="mi">1</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+  <span class="mi">12</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;0eb7130429570c6fe23017091df0a654&#39;</span><span class="p">,</span>
+  <span class="mi">65</span><span class="p">,</span>
+  <span class="p">{}]]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="save-a-new-version">
+<h2>Save a new version<a class="headerlink" href="#save-a-new-version" title="Permalink to this headline">¶</a></h2>
+<p>Providing an existing name or ID when saving an object causes the creation
+of a new object version:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">20</span><span class="p">]:</span> <span class="n">obj</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;array_of_maps&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                <span class="s1">&#39;an_int&#39;</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span>
+                <span class="s1">&#39;a_float&#39;</span><span class="p">:</span> <span class="mf">6.02e-23</span><span class="p">,</span>
+                <span class="s1">&#39;a_string&#39;</span><span class="p">:</span> <span class="s1">&#39;hoopty frood&#39;</span><span class="p">}</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">22</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">save_objects</span><span class="p">(</span>
+             <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+              <span class="s1">&#39;objects&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;objid&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                           <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;SimpleObjects.SimpleObject-1.0&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">obj</span>
+                           <span class="p">}</span>
+                          <span class="p">]</span>
+              <span class="p">})</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">22</span><span class="p">]:</span>
+<span class="p">[[</span><span class="mi">1</span><span class="p">,</span>                                    <span class="c1"># same object ID</span>
+  <span class="sa">u</span><span class="s1">&#39;simple&#39;</span><span class="p">,</span>                            <span class="c1"># same name</span>
+  <span class="sa">u</span><span class="s1">&#39;SimpleObjects.SimpleObject-1.0&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;2015-12-14T04:22:38+0000&#39;</span><span class="p">,</span>
+  <span class="mi">2</span><span class="p">,</span>                                    <span class="c1"># new version</span>
+  <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+  <span class="mi">12</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;8aba51168748e7a7a91847f510ce2807&#39;</span><span class="p">,</span>  <span class="c1"># new MD5</span>
+  <span class="mi">77</span><span class="p">,</span>                                   <span class="c1"># 7 more bytes wasted</span>
+  <span class="p">{}]]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="save-an-object-with-metadata">
+<h2>Save an object with metadata<a class="headerlink" href="#save-an-object-with-metadata" title="Permalink to this headline">¶</a></h2>
+<p>As with workspaces, arbitrary key-value metadata can be associated with
+objects:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">27</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">save_objects</span><span class="p">(</span>
+             <span class="p">{</span><span class="s1">&#39;workspace&#39;</span><span class="p">:</span> <span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;objects&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;simple3&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;SimpleObjects.SimpleObject-1.0&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">obj</span><span class="p">,</span>
+                           <span class="s1">&#39;meta&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Eccentrica&#39;</span><span class="p">:</span> <span class="s1">&#39;Gallumbits&#39;</span><span class="p">,</span>
+                                    <span class="s1">&#39;Wowbagger&#39;</span><span class="p">:</span> <span class="s1">&#39;Prolonged&#39;</span>
+                                    <span class="p">}</span>
+                           <span class="p">}</span>
+                          <span class="p">]</span>
+              <span class="p">})</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">27</span><span class="p">]:</span>
+<span class="p">[[</span><span class="mi">2</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;simple3&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;SimpleObjects.SimpleObject-1.0&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;2015-12-14T04:43:21+0000&#39;</span><span class="p">,</span>
+  <span class="mi">1</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+  <span class="mi">12</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;8aba51168748e7a7a91847f510ce2807&#39;</span><span class="p">,</span>
+  <span class="mi">77</span><span class="p">,</span>
+  <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;Eccentrica&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;Gallumbits&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;Wowbagger&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;Prolonged&#39;</span><span class="p">}]]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="save-an-object-with-provenance">
+<h2>Save an object with provenance<a class="headerlink" href="#save-an-object-with-provenance" title="Permalink to this headline">¶</a></h2>
+<p>Provenance data may be saved along with the object data as a list of
+provenance actions (PAs). Each PA represents a step taken to convert a data
+unit into another - for example, passing a genome sequence to a server
+which returns a metabolic model for that sequence. The PA contains
+fields for recording how an object was generated. See the <a class="reference internal" href="api.html#apidocs"><span class="std std-ref">Workspace API documentation</span></a> for
+the full specification, but some common fields are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="19%" />
+<col width="81%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Field</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>time</td>
+<td>The time the action took place</td>
+</tr>
+<tr class="row-odd"><td>service</td>
+<td>The name of the service that produced the object</td>
+</tr>
+<tr class="row-even"><td>service_ver</td>
+<td>The version of the service</td>
+</tr>
+<tr class="row-odd"><td>method</td>
+<td>The method called on the service</td>
+</tr>
+<tr class="row-even"><td>description</td>
+<td>A free text description of the action</td>
+</tr>
+</tbody>
+</table>
+<p>Some fields require special explanation. The <code class="docutils literal"><span class="pre">intermediate_incoming</span></code> and
+<code class="docutils literal"><span class="pre">intermediate_outgoing</span></code> fields allow linking the outputs of one PA with
+the inputs of the next. The list of PAs is assumed to be in the order the
+actions took place, so, for example, if workspace object <code class="docutils literal"><span class="pre">A</span></code> was passed to
+a service method as <code class="docutils literal"><span class="pre">X.process(A)</span></code> which produced the object tuple
+<code class="docutils literal"><span class="pre">[B,</span> <span class="pre">C]</span></code>, and those results were passed to a service method as
+<code class="docutils literal"><span class="pre">Y.dothing(C,</span> <span class="pre">B)</span></code> which produced the object <code class="docutils literal"><span class="pre">D</span></code>, the provenance list might
+look like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">pl</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;service&#39;</span><span class="p">:</span> <span class="s1">&#39;X&#39;</span><span class="p">,</span>
+       <span class="s1">&#39;method&#39;</span><span class="p">:</span> <span class="s1">&#39;process&#39;</span><span class="p">,</span>
+       <span class="s1">&#39;intermediate_outgoing&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">]</span>
+       <span class="p">},</span>
+      <span class="p">{</span><span class="s1">&#39;service&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
+       <span class="s1">&#39;method&#39;</span><span class="p">:</span> <span class="s1">&#39;dothing&#39;</span><span class="p">,</span>
+       <span class="s1">&#39;intermediate_incoming&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">]</span>
+       <span class="s1">&#39;method_params&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">]</span>
+       <span class="p">}</span>
+      <span class="p">]</span>
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">B</span></code> and <code class="docutils literal"><span class="pre">C</span></code>, in this example, are merely symbols that describe the ordering
+of the inputs and outputs of each step and any permutations of those orders
+from step to step. Any unique names could be used.</p>
+<p>The <code class="docutils literal"><span class="pre">input_ws_objects</span></code> field allows specifying workspace objects that were
+used in the creation of the current object and therefore are part of its
+provenance. In the example above, object <code class="docutils literal"><span class="pre">A</span></code> is part of the provenance of
+object <code class="docutils literal"><span class="pre">D</span></code>, and should therefore be specified in <code class="docutils literal"><span class="pre">input_ws_objects</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">pl</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;service&#39;</span><span class="p">:</span> <span class="s1">&#39;X&#39;</span><span class="p">,</span>
+       <span class="s1">&#39;method&#39;</span><span class="p">:</span> <span class="s1">&#39;process&#39;</span><span class="p">,</span>
+       <span class="s1">&#39;intermediate_outgoing&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">],</span>
+       <span class="s1">&#39;input_ws_objects&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;MyWorkspace/2/2&#39;</span><span class="p">]</span>
+       <span class="p">},</span>
+      <span class="p">{</span><span class="s1">&#39;service&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
+      <span class="o">...</span>
+</pre></div>
+</div>
+<p>In this case, <code class="docutils literal"><span class="pre">A</span></code> was the 2nd version of object ID <code class="docutils literal"><span class="pre">2</span></code> in <code class="docutils literal"><span class="pre">MyWorkspace</span></code>.
+The name or ID of the workspace and object may be used in the reference string.
+Names will always be translated to IDs by the WSS before the provenance is
+saved, since IDs are permanent and names are not.</p>
+<p>For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">27</span><span class="p">]:</span> <span class="n">ps</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;assemble paired end reads&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;input_ws_objects&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;MyWorkspace/simple/1&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;method&#39;</span><span class="p">:</span> <span class="s1">&#39;annotatePairedReads&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;method_params&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;objname&#39;</span><span class="p">:</span> <span class="s1">&#39;simple&#39;</span><span class="p">,</span>
+                                   <span class="s1">&#39;workspace&#39;</span><span class="p">:</span> <span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+                                   <span class="s1">&#39;ver&#39;</span><span class="p">:</span> <span class="mi">1</span>
+                                   <span class="p">}</span>
+                                  <span class="p">],</span>
+                <span class="s1">&#39;service&#39;</span><span class="p">:</span> <span class="s1">&#39;Annotation&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;service_ver&#39;</span><span class="p">:</span> <span class="s1">&#39;2.1.3&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="s1">&#39;2015-12-15T22:58:55+0000&#39;</span>
+                <span class="p">}</span>
+               <span class="p">]</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">30</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">save_objects</span><span class="p">(</span>
+             <span class="p">{</span><span class="s1">&#39;workspace&#39;</span><span class="p">:</span> <span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;objects&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;simpleWithProv&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;SimpleObjects.SimpleObject-1.0&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">obj</span><span class="p">,</span>
+                           <span class="s1">&#39;provenance&#39;</span><span class="p">:</span> <span class="n">ps</span>
+                           <span class="p">}</span>
+                          <span class="p">]</span>
+              <span class="p">})</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">30</span><span class="p">]:</span>
+<span class="p">[[</span><span class="mi">4</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;simpleWithProv&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;SimpleObjects.SimpleObject-1.0&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;2015-12-14T23:44:35+0000&#39;</span><span class="p">,</span>
+  <span class="mi">2</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+  <span class="mi">12</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;6b76d883ffa1357e52e1020594317dd7&#39;</span><span class="p">,</span>
+  <span class="mi">70</span><span class="p">,</span>
+  <span class="p">{}]]</span>
+</pre></div>
+</div>
+<p>If the object is retrieved, it can be seen that the <code class="docutils literal"><span class="pre">resolved_ws_objects</span></code>
+field has been added to the provenance. This field contains the translated
+object references supplied in <code class="docutils literal"><span class="pre">input_ws_objects</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">32</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">get_objects2</span><span class="p">({</span><span class="s1">&#39;objects&#39;</span><span class="p">:</span>
+             <span class="p">[{</span><span class="s1">&#39;ref&#39;</span><span class="p">:</span> <span class="s1">&#39;MyWorkspace/simpleWithProv&#39;</span><span class="p">}]})[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">32</span><span class="p">]:</span>
+<span class="p">[{</span><span class="sa">u</span><span class="s1">&#39;copy_source_inaccessible&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;created&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;2015-12-14T23:44:35+0000&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;creator&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;a_float&#39;</span><span class="p">:</span> <span class="mf">6.02e-23</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;a_string&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;towel&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;an_int&#39;</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;array_of_maps&#39;</span><span class="p">:</span> <span class="p">[]},</span>
+  <span class="sa">u</span><span class="s1">&#39;extracted_ids&#39;</span><span class="p">:</span> <span class="p">{},</span>
+  <span class="sa">u</span><span class="s1">&#39;info&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;simpleWithProv&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;SimpleObjects.SimpleObject-1.0&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;2015-12-14T23:44:35+0000&#39;</span><span class="p">,</span>
+   <span class="mi">2</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+   <span class="mi">12</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;6b76d883ffa1357e52e1020594317dd7&#39;</span><span class="p">,</span>
+   <span class="mi">70</span><span class="p">,</span>
+   <span class="p">{}],</span>
+  <span class="sa">u</span><span class="s1">&#39;provenance&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="sa">u</span><span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;assemble paired end reads&#39;</span><span class="p">,</span>
+    <span class="sa">u</span><span class="s1">&#39;external_data&#39;</span><span class="p">:</span> <span class="p">[],</span>
+<span class="hll">    <span class="sa">u</span><span class="s1">&#39;input_ws_objects&#39;</span><span class="p">:</span> <span class="p">[</span><span class="sa">u</span><span class="s1">&#39;MyWorkspace/simple/1&#39;</span><span class="p">],</span>
+</span>    <span class="sa">u</span><span class="s1">&#39;method&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;annotatePairedReads&#39;</span><span class="p">,</span>
+    <span class="sa">u</span><span class="s1">&#39;method_params&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="sa">u</span><span class="s1">&#39;objname&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;simple&#39;</span><span class="p">,</span>
+                        <span class="sa">u</span><span class="s1">&#39;workspace&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;MyWorkspace&#39;</span>
+                        <span class="sa">u</span><span class="s1">&#39;ver&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}],</span>
+<span class="hll">    <span class="sa">u</span><span class="s1">&#39;resolved_ws_objects&#39;</span><span class="p">:</span> <span class="p">[</span><span class="sa">u</span><span class="s1">&#39;12/1/1&#39;</span><span class="p">],</span>
+</span>    <span class="sa">u</span><span class="s1">&#39;service&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;Annotation&#39;</span><span class="p">,</span>
+    <span class="sa">u</span><span class="s1">&#39;service_ver&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;2.1.3&#39;</span><span class="p">,</span>
+    <span class="sa">u</span><span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;2015-12-15T22:58:55+0000&#39;</span><span class="p">}],</span>
+  <span class="sa">u</span><span class="s1">&#39;refs&#39;</span><span class="p">:</span> <span class="p">[]}]</span>
+</pre></div>
+</div>
+<p>Saving provenance with objects is optional, but strongly encouraged.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The WSS does not inherently know anything about the provenance of the
+objects it stores, and cannot evaluate the reliability or completeness of
+the provenance. It is entirely up to the user or application storing the
+objects to ensure accurate and complete provenance. Clearly the provenance
+in the examples above is fradulent.</p>
+</div>
+</div>
+<div class="section" id="save-an-object-with-dependency-references">
+<span id="saveobjectwithrefs"></span><h2>Save an object with dependency references<a class="headerlink" href="#save-an-object-with-dependency-references" title="Permalink to this headline">¶</a></h2>
+<p>The following types will be used to demonstrate saving objects with
+dependency references:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">52</span><span class="p">]:</span> <span class="k">print</span> <span class="n">ws</span><span class="o">.</span><span class="n">get_module_info</span><span class="p">({</span><span class="s1">&#39;mod&#39;</span><span class="p">:</span> <span class="s1">&#39;SimpleObjects&#39;</span><span class="p">})[</span><span class="s1">&#39;spec&#39;</span><span class="p">]</span>
+<span class="n">module</span> <span class="n">SimpleObjects</span> <span class="p">{</span>
+
+    <span class="o">/*</span> <span class="nd">@optional</span> <span class="n">opt</span> <span class="o">*/</span>
+    <span class="n">typedef</span> <span class="n">structure</span> <span class="p">{</span>
+        <span class="nb">list</span><span class="o">&lt;</span><span class="n">mapping</span><span class="o">&lt;</span><span class="n">string</span><span class="p">,</span> <span class="nb">int</span><span class="o">&gt;&gt;</span> <span class="n">array_of_maps</span><span class="p">;</span>
+        <span class="nb">int</span> <span class="n">an_int</span><span class="p">;</span>
+        <span class="nb">float</span> <span class="n">a_float</span><span class="p">;</span>
+        <span class="n">string</span> <span class="n">a_string</span><span class="p">;</span>
+        <span class="nb">int</span> <span class="n">opt</span><span class="p">;</span>
+    <span class="p">}</span> <span class="n">SimpleObject</span><span class="p">;</span>
+
+    <span class="n">typedef</span> <span class="n">structure</span> <span class="p">{</span>
+        <span class="nb">int</span> <span class="n">i</span><span class="p">;</span>
+        <span class="n">string</span> <span class="n">thing</span><span class="p">;</span>
+    <span class="p">}</span> <span class="n">SimplerObject</span><span class="p">;</span>
+
+    <span class="o">/*</span> <span class="nd">@id</span> <span class="n">ws</span> <span class="o">*/</span>
+    <span class="n">typedef</span> <span class="n">string</span> <span class="n">ref</span><span class="p">;</span>
+
+    <span class="o">/*</span> <span class="nd">@id</span> <span class="n">ws</span> <span class="n">SimpleObjects</span><span class="o">.</span><span class="n">SimplerObject</span> <span class="o">*/</span>
+    <span class="n">typedef</span> <span class="n">string</span> <span class="n">typedref</span><span class="p">;</span>
+
+    <span class="n">typedef</span> <span class="n">structure</span> <span class="p">{</span>
+        <span class="n">ref</span> <span class="n">r</span><span class="p">;</span>
+        <span class="n">string</span> <span class="n">thing</span><span class="p">;</span>
+    <span class="p">}</span> <span class="n">RefObject</span><span class="p">;</span>
+
+    <span class="n">typedef</span> <span class="n">structure</span> <span class="p">{</span>
+        <span class="n">typedref</span> <span class="n">r</span><span class="p">;</span>
+        <span class="n">string</span> <span class="n">thing</span><span class="p">;</span>
+    <span class="p">}</span> <span class="n">TypeRefObject</span><span class="p">;</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>Saving an object with a dependency reference required by the typespec is just
+like saving any other object:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="hll"><span class="n">In</span> <span class="p">[</span><span class="mi">57</span><span class="p">]:</span> <span class="n">refobj</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;r&#39;</span><span class="p">:</span> <span class="s1">&#39;MyWorkspace/simple&#39;</span><span class="p">,</span>
+</span>                   <span class="s1">&#39;thing&#39;</span><span class="p">:</span> <span class="s1">&#39;this object has a reference&#39;</span>
+                   <span class="p">}</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">58</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">save_objects</span><span class="p">(</span>
+             <span class="p">{</span><span class="s1">&#39;workspace&#39;</span><span class="p">:</span> <span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;objects&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;ref&#39;</span><span class="p">,</span>
+<span class="hll">                           <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;SimpleObjects.RefObject-2.0&#39;</span><span class="p">,</span>
+</span>                           <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">refobj</span><span class="p">,</span>
+                           <span class="p">}</span>
+                          <span class="p">]</span>
+              <span class="p">})</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">58</span><span class="p">]:</span>
+<span class="p">[[</span><span class="mi">6</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;ref&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;SimpleObjects.RefObject-2.0&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;2015-12-15T03:12:41+0000&#39;</span><span class="p">,</span>
+  <span class="mi">1</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+  <span class="mi">12</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;44e0ef9dff44c4840ddf77abbfc555bd&#39;</span><span class="p">,</span>
+  <span class="mi">52</span><span class="p">,</span>
+  <span class="p">{}]]</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">59</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">get_objects2</span><span class="p">({</span><span class="s1">&#39;objects&#39;</span><span class="p">:</span>
+             <span class="p">[{</span><span class="s1">&#39;workspace&#39;</span><span class="p">:</span> <span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;ref&#39;</span><span class="p">}]})[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">59</span><span class="p">]:</span>
+<span class="p">[{</span><span class="sa">u</span><span class="s1">&#39;copy_source_inaccessible&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;created&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;2015-12-15T03:12:41+0000&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;creator&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+<span class="hll">  <span class="sa">u</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;r&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;12/1/2&#39;</span><span class="p">,</span>
+</span>            <span class="sa">u</span><span class="s1">&#39;thing&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;this object has a reference&#39;</span>
+            <span class="p">},</span>
+  <span class="sa">u</span><span class="s1">&#39;extracted_ids&#39;</span><span class="p">:</span> <span class="p">{},</span>
+  <span class="sa">u</span><span class="s1">&#39;info&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;ref&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;SimpleObjects.RefObject-2.0&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;2015-12-15T03:12:41+0000&#39;</span><span class="p">,</span>
+   <span class="mi">1</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+   <span class="mi">12</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;44e0ef9dff44c4840ddf77abbfc555bd&#39;</span><span class="p">,</span>
+   <span class="mi">52</span><span class="p">,</span>
+   <span class="p">{}],</span>
+  <span class="sa">u</span><span class="s1">&#39;provenance&#39;</span><span class="p">:</span> <span class="p">[],</span>
+<span class="hll">  <span class="sa">u</span><span class="s1">&#39;refs&#39;</span><span class="p">:</span> <span class="p">[</span><span class="sa">u</span><span class="s1">&#39;12/1/2&#39;</span><span class="p">]}]</span>
+</span></pre></div>
+</div>
+<p>Note that the reference in the saved object was translated to a permanent
+reference, and that the references are extracted into the <code class="docutils literal"><span class="pre">refs</span></code> <code class="docutils literal"><span class="pre">list</span></code> in
+the returned data.</p>
+<p>If the referenced object is not accessible to the user saving the object,
+the save will fail. If the save succeeds, the referent will be forever
+accessible to users with access to the referencing object as described
+previously.</p>
+<p>Types may specify that a reference must point to an object with a specific
+type, as in the <code class="docutils literal"><span class="pre">TypeRefObject</span></code> type. In this case, saving with a reference
+that does not point to an object with type <code class="docutils literal"><span class="pre">SimpleObjects.SimplerObject</span></code> will
+fail:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">73</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">save_objects</span><span class="p">(</span>
+             <span class="p">{</span><span class="s1">&#39;workspace&#39;</span><span class="p">:</span> <span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;objects&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;typedref&#39;</span><span class="p">,</span>
+<span class="hll">                           <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;SimpleObjects.TypeRefObject&#39;</span><span class="p">,</span>
+</span>                           <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">refobj</span><span class="p">,</span>
+                           <span class="p">}</span>
+                          <span class="p">]</span>
+              <span class="p">})</span>
+<span class="o">---------------------------------------------------------------------------</span>
+<span class="n">ServerError</span>                               <span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">)</span>
+<span class="o">&lt;</span><span class="n">ipython</span><span class="o">-</span><span class="nb">input</span><span class="o">-</span><span class="mi">73</span><span class="o">-</span><span class="mi">80</span><span class="n">b8ab6aabd0</span><span class="o">&gt;</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span><span class="p">()</span>
+      <span class="mi">3</span>               <span class="s1">&#39;objects&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;typedref&#39;</span><span class="p">,</span>
+      <span class="mi">4</span>                            <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;SimpleObjects.TypeRefObject&#39;</span><span class="p">,</span>
+<span class="o">----&gt;</span> <span class="mi">5</span>                            <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">refobj</span><span class="p">,</span>
+      <span class="mi">6</span>                            <span class="p">}</span>
+      <span class="mi">7</span>                           <span class="p">]</span>
+
+<span class="o">*</span><span class="n">snip</span><span class="o">*</span>
+
+<span class="n">ServerError</span><span class="p">:</span> <span class="n">JSONRPCError</span><span class="p">:</span> <span class="o">-</span><span class="mf">32500.</span> <span class="n">Object</span> <span class="c1">#1, typedref has invalid</span>
+<span class="n">reference</span><span class="p">:</span> <span class="n">The</span> <span class="nb">type</span> <span class="n">SimpleObjects</span><span class="o">.</span><span class="n">SimpleObject</span><span class="o">-</span><span class="mf">1.0</span> <span class="n">of</span> <span class="n">reference</span>
+<span class="n">MyWorkspace</span><span class="o">/</span><span class="n">simple</span> <span class="ow">in</span> <span class="n">this</span> <span class="nb">object</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">allowed</span> <span class="o">-</span> <span class="n">allowed</span> <span class="n">types</span> <span class="n">are</span>
+<span class="p">[</span><span class="n">SimpleObjects</span><span class="o">.</span><span class="n">SimplerObject</span><span class="p">]</span> <span class="n">at</span> <span class="o">/</span><span class="n">r</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="list-objects">
+<h2>List objects<a class="headerlink" href="#list-objects" title="Permalink to this headline">¶</a></h2>
+<p>Listing objects is similar to listing workspaces:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">74</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">list_objects</span><span class="p">({</span><span class="s1">&#39;ids&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">12</span><span class="p">]})</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">74</span><span class="p">]:</span>
+<span class="p">[[</span><span class="mi">2</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;simple3&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;SimpleObjects.SimpleObject-1.0&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;2015-12-14T22:58:01+0000&#39;</span><span class="p">,</span>
+  <span class="mi">1</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+  <span class="mi">12</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;8aba51168748e7a7a91847f510ce2807&#39;</span><span class="p">,</span>
+  <span class="mi">77</span><span class="p">,</span>
+  <span class="bp">None</span><span class="p">],</span>
+
+ <span class="o">*</span><span class="n">snip</span><span class="o">*</span>
+
+ <span class="p">[</span><span class="mi">4</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;simpleWithProv&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;SimpleObjects.SimpleObject-1.0&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;2015-12-14T23:44:35+0000&#39;</span><span class="p">,</span>
+  <span class="mi">2</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+  <span class="mi">12</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;6b76d883ffa1357e52e1020594317dd7&#39;</span><span class="p">,</span>
+  <span class="mi">70</span><span class="p">,</span>
+  <span class="bp">None</span><span class="p">]]</span>
+</pre></div>
+</div>
+<p>Listing also works by type:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">78</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">list_objects</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;SimpleObjects.RefObject&#39;</span><span class="p">})</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">78</span><span class="p">]:</span>
+<span class="p">[[</span><span class="mi">6</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;ref&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;SimpleObjects.RefObject-2.0&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;2015-12-15T03:12:41+0000&#39;</span><span class="p">,</span>
+  <span class="mi">1</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+  <span class="mi">12</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;44e0ef9dff44c4840ddf77abbfc555bd&#39;</span><span class="p">,</span>
+  <span class="mi">52</span><span class="p">,</span>
+  <span class="bp">None</span><span class="p">]]</span>
+</pre></div>
+</div>
+<p>A large number of filters exist for <code class="docutils literal"><span class="pre">list_objects</span></code> - see the <a class="reference internal" href="api.html#apidocs"><span class="std std-ref">Workspace API documentation</span></a>
+for comprehensive coverage. In this example, the list is filtered by the object
+metadata:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">82</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">list_objects</span><span class="p">({</span><span class="s1">&#39;ids&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">12</span><span class="p">],</span>
+                          <span class="s1">&#39;meta&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Wowbagger&#39;</span><span class="p">:</span> <span class="s1">&#39;Prolonged&#39;</span><span class="p">},</span>
+                          <span class="s1">&#39;includeMetadata&#39;</span><span class="p">:</span> <span class="mi">1</span>
+                          <span class="p">})</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">82</span><span class="p">]:</span>
+<span class="p">[[</span><span class="mi">2</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;simple3&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;SimpleObjects.SimpleObject-1.0&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;2015-12-14T22:58:01+0000&#39;</span><span class="p">,</span>
+  <span class="mi">1</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+  <span class="mi">12</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;8aba51168748e7a7a91847f510ce2807&#39;</span><span class="p">,</span>
+  <span class="mi">77</span><span class="p">,</span>
+  <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;Eccentrica&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;Gallumbits&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;Wowbagger&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;Prolonged&#39;</span><span class="p">}]]</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Objects</a><ul>
+<li><a class="reference internal" href="#save-an-object">Save an object</a></li>
+<li><a class="reference internal" href="#save-a-new-version">Save a new version</a></li>
+<li><a class="reference internal" href="#save-an-object-with-metadata">Save an object with metadata</a></li>
+<li><a class="reference internal" href="#save-an-object-with-provenance">Save an object with provenance</a></li>
+<li><a class="reference internal" href="#save-an-object-with-dependency-references">Save an object with dependency references</a></li>
+<li><a class="reference internal" href="#list-objects">List objects</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="users.html">User documentation</a><ul>
+      <li>Previous: <a href="workspaces.html" title="previous chapter">Workspaces</a></li>
+      <li>Next: <a href="getobjectsubdata.html" title="next chapter">Subsetting objects</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/saveobjects.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2012-2017, KBase.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/saveobjects.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

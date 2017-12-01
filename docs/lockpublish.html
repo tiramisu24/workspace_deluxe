@@ -1,0 +1,166 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Locking and publishing workspaces &#8212; KBase Workspace 0.8.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.8.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Shock integration with the workspace service" href="shockintegration.html" />
+    <link rel="prev" title="Traversing object references" href="traversereferences.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="locking-and-publishing-workspaces">
+<h1>Locking and publishing workspaces<a class="headerlink" href="#locking-and-publishing-workspaces" title="Permalink to this headline">¶</a></h1>
+<p>A workspace administrator may lock a workspace, preventing (most) further
+changes. If a locked workspace is globally readable, it is considered published
+- a user might wish to publish a workspace that contains supplemental
+information for a publication, for example, so that the publication editors can
+see that the information is permanently recorded.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Once a workspace is locked, it can never be unlocked, even by a
+server administrator.</p>
+</div>
+<p>As usual, it is assumed that a functional client is available (see
+<a class="reference internal" href="buildinitclient.html#buildinitclient"><span class="std std-ref">Build and initialize the workspace client</span></a>). The examples use the Python client, but translating to
+other clients is trivial.</p>
+<p>Lock a workspace (see <a class="reference internal" href="workspaces.html#createworkspaces"><span class="std std-ref">Creating workspaces</span></a> and <a class="reference internal" href="saveobjects.html#saveobjects"><span class="std std-ref">Save an object</span></a> for
+information on creating workspaces and saving objects):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">8</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">lock_workspace</span><span class="p">({</span><span class="s1">&#39;workspace&#39;</span><span class="p">:</span> <span class="s1">&#39;MyWorkspace&#39;</span><span class="p">})</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">8</span><span class="p">]:</span>
+<span class="p">[</span><span class="mi">12</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;2015-12-20T01:09:49+0000&#39;</span><span class="p">,</span>
+ <span class="mi">2</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;a&#39;</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;n&#39;</span><span class="p">,</span>
+<span class="hll"> <span class="sa">u</span><span class="s1">&#39;locked&#39;</span><span class="p">,</span>
+</span> <span class="p">{}]</span>
+</pre></div>
+</div>
+<p>The following methods are not allowed on locked workspaces:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">alter_workspace_metadata</span></code></li>
+<li><code class="docutils literal"><span class="pre">delete_objects</span></code></li>
+<li><code class="docutils literal"><span class="pre">undelete_objects</span></code></li>
+<li><code class="docutils literal"><span class="pre">delete_workspace</span></code></li>
+<li><code class="docutils literal"><span class="pre">hide_objects</span></code></li>
+<li><code class="docutils literal"><span class="pre">unhide_objects</span></code></li>
+<li><code class="docutils literal"><span class="pre">lock_workspace</span></code></li>
+<li><code class="docutils literal"><span class="pre">rename_object</span></code></li>
+<li><code class="docutils literal"><span class="pre">rename_workspace</span></code></li>
+<li><code class="docutils literal"><span class="pre">revert_object</span></code></li>
+<li><code class="docutils literal"><span class="pre">save_object</span></code> (note this function is deprecated)</li>
+<li><code class="docutils literal"><span class="pre">save_objects</span></code></li>
+<li><code class="docutils literal"><span class="pre">set_workspace_description</span></code></li>
+</ul>
+<p><code class="docutils literal"><span class="pre">set_permissions</span></code> does work.</p>
+<p>Additionally <code class="docutils literal"><span class="pre">set_global_permission</span></code> may only be used to make the workspace
+globally readable. A locked, globally readable workspace may not be made
+private:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">9</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">set_global_permission</span><span class="p">({</span><span class="s1">&#39;workspace&#39;</span><span class="p">:</span> <span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+                                  <span class="s1">&#39;new_permission&#39;</span><span class="p">:</span> <span class="s1">&#39;r&#39;</span><span class="p">})</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">10</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">set_global_permission</span><span class="p">({</span><span class="s1">&#39;workspace&#39;</span><span class="p">:</span> <span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+                                   <span class="s1">&#39;new_permission&#39;</span><span class="p">:</span> <span class="s1">&#39;n&#39;</span><span class="p">})</span>
+<span class="o">---------------------------------------------------------------------------</span>
+<span class="n">ServerError</span>                               <span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">)</span>
+<span class="o">&lt;</span><span class="n">ipython</span><span class="o">-</span><span class="nb">input</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="n">c700ea19406a</span><span class="o">&gt;</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span><span class="p">()</span>
+<span class="o">----&gt;</span> <span class="mi">1</span> <span class="n">ws</span><span class="o">.</span><span class="n">set_global_permission</span><span class="p">({</span><span class="s1">&#39;workspace&#39;</span><span class="p">:</span> <span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+                                  <span class="s1">&#39;new_permission&#39;</span><span class="p">:</span> <span class="s1">&#39;n&#39;</span><span class="p">})</span>
+
+<span class="o">*</span><span class="n">snip</span><span class="o">*</span>
+
+<span class="n">ServerError</span><span class="p">:</span> <span class="n">JSONRPCError</span><span class="p">:</span> <span class="o">-</span><span class="mf">32500.</span> <span class="n">The</span> <span class="n">workspace</span> <span class="k">with</span> <span class="nb">id</span> <span class="mi">12</span><span class="p">,</span> <span class="n">name</span> <span class="n">MyWorkspace</span><span class="p">,</span>
+ <span class="ow">is</span> <span class="n">locked</span> <span class="ow">and</span> <span class="n">may</span> <span class="ow">not</span> <span class="n">be</span> <span class="n">modified</span>
+</pre></div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="users.html">User documentation</a><ul>
+      <li>Previous: <a href="traversereferences.html" title="previous chapter">Traversing object references</a></li>
+      <li>Next: <a href="shockintegration.html" title="next chapter">Shock integration with the workspace service</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/lockpublish.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2012-2017, KBase.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/lockpublish.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

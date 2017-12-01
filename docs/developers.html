@@ -1,0 +1,150 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Developer documentation &#8212; KBase Workspace 0.8.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.8.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Workspace service release notes" href="releasenotes.html" />
+    <link rel="prev" title="Known administration bugs" href="knownadminbugs.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="developer-documentation">
+<h1>Developer documentation<a class="headerlink" href="#developer-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="contributions-and-branches">
+<h2>Contributions and branches<a class="headerlink" href="#contributions-and-branches" title="Permalink to this headline">¶</a></h2>
+<p>All pull requests should go to the <code class="docutils literal"><span class="pre">dev-candidate</span></code> branch or a feature
+branch.</p>
+<p>Branches:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">dev-candidate</span></code> - work in progress goes here, not stable, tests may not
+pass.</li>
+<li><code class="docutils literal"><span class="pre">develop</span></code> - All tests pass. <code class="docutils literal"><span class="pre">dev-candidate</span></code> is merged here when features
+are ready for release. Ready for integration testing.</li>
+<li><code class="docutils literal"><span class="pre">staging</span></code> - as dev.</li>
+<li><code class="docutils literal"><span class="pre">master</span></code> - All tests pass, code is production ready.</li>
+</ul>
+<p><code class="docutils literal"><span class="pre">develop</span></code> deploys to <code class="docutils literal"><span class="pre">ci.kbase.us</span></code> while <code class="docutils literal"><span class="pre">staging</span></code> deploys to
+<code class="docutils literal"><span class="pre">next.kbase.us</span></code>. Generally speaking, most development would occur on
+<code class="docutils literal"><span class="pre">develop</span></code>, but because most of <code class="docutils literal"><span class="pre">ci</span></code> would break if the workspace breaks,
+<code class="docutils literal"><span class="pre">develop</span></code> must be kept stable.</p>
+</div>
+<div class="section" id="recompiling-the-generated-code">
+<h2>Recompiling the generated code<a class="headerlink" href="#recompiling-the-generated-code" title="Permalink to this headline">¶</a></h2>
+<p>To compile, simply run <code class="docutils literal"><span class="pre">make</span> <span class="pre">compile</span></code>. The
+<a class="reference external" href="https://github.com/kbase/kb_sdk">kb-sdk</a> executable must be in the system
+path.</p>
+</div>
+<div class="section" id="release-checklist">
+<h2>Release checklist<a class="headerlink" href="#release-checklist" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Update the version in <code class="docutils literal"><span class="pre">docsource/conf.py</span></code></li>
+<li>Update the version in the generated server java file</li>
+<li>Update release notes</li>
+<li>Update documentation if necessary.</li>
+<li>Ensure tests cover changes. Add new tests if necessary.</li>
+<li>Run tests against supported versions of MongoDB and Shock.</li>
+<li>Tag the release in git with the new version</li>
+<li>Merge <code class="docutils literal"><span class="pre">dev-candidate</span></code> to <code class="docutils literal"><span class="pre">develop</span></code></li>
+<li>When satisfied with CI testing (work with devops here), merge <code class="docutils literal"><span class="pre">develop</span></code> to
+<code class="docutils literal"><span class="pre">staging</span></code></li>
+<li>When satisfied with testing on <code class="docutils literal"><span class="pre">next.kbase.us</span></code> merge <code class="docutils literal"><span class="pre">staging</span></code> to
+<code class="docutils literal"><span class="pre">master</span></code>.</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Developer documentation</a><ul>
+<li><a class="reference internal" href="#contributions-and-branches">Contributions and branches</a></li>
+<li><a class="reference internal" href="#recompiling-the-generated-code">Recompiling the generated code</a></li>
+<li><a class="reference internal" href="#release-checklist">Release checklist</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="knownadminbugs.html" title="previous chapter">Known administration bugs</a></li>
+      <li>Next: <a href="releasenotes.html" title="next chapter">Workspace service release notes</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/developers.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2012-2017, KBase.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/developers.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

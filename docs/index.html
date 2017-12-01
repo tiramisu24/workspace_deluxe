@@ -1,0 +1,203 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>KBase Workspace Service Manual &#8212; KBase Workspace 0.8.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.8.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Workspace fundamentals" href="fundamentals.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="kbase-workspace-service-manual">
+<h1>KBase Workspace Service Manual<a class="headerlink" href="#kbase-workspace-service-manual" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>The Workspace Service (WSS) is a language independent remote storage
+and retrieval system for KBase typed objects (TO) defined with the KBase
+Interface Description Language (KIDL). It has the following primary features:</p>
+<ul class="simple">
+<li>Immutable storage of TOs with<ul>
+<li>user defined metadata</li>
+<li>data provenance</li>
+</ul>
+</li>
+<li>Versioning of TOs</li>
+<li>Referencing from TO to TO</li>
+<li>Typechecking of all saved objects against a KIDL specification</li>
+<li>Collecting typed objects into a workspace</li>
+<li>Sharing workspaces with specific KBase users or the world</li>
+<li>Freezing and publishing workspaces</li>
+<li>Serverside extraction of portions of an object</li>
+</ul>
+</div>
+<div class="section" id="manual">
+<h2>Manual<a class="headerlink" href="#manual" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fundamentals.html">Workspace fundamentals</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="fundamentals.html#typed-object-relationships">Typed object relationships</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fundamentals.html#addressing-workspaces-and-objects">Addressing workspaces and objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fundamentals.html#the-object-graph">The object graph</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fundamentals.html#example">Example</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="users.html">User documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="builddocs.html">Build documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="buildinitclient.html">Build and initialize the workspace client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typedobjects.html">Workspace typed objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="devtypedobjects.html">Developing typed object definitions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typecheckingerrors.html">Type checking error messages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workspaces.html">Workspaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="saveobjects.html">Objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getobjectsubdata.html">Subsetting objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="traversereferences.html">Traversing object references</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lockpublish.html">Locking and publishing workspaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shockintegration.html">Shock integration with the workspace service</a></li>
+<li class="toctree-l2"><a class="reference internal" href="limits.html">Workspace limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="userfaq.html">FAQ</a></li>
+<li class="toctree-l2"><a class="reference internal" href="knownuserbugs.html">Known user-facing bugs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html">Workspace API documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="admins.html">Server Administrator Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="buildandconfigure.html">Build, configure, and deploy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="test.html">Test</a></li>
+<li class="toctree-l2"><a class="reference internal" href="resourcereqs.html">Workspace resource requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="administrationinterface.html">Administration interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="knownadminbugs.html">Known administration bugs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developers.html">Developer documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developers.html#contributions-and-branches">Contributions and branches</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developers.html#recompiling-the-generated-code">Recompiling the generated code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developers.html#release-checklist">Release checklist</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="releasenotes.html">Workspace service release notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-0-8-0-released-tbd">VERSION: 0.8.0 (Released TBD)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-0-7-1-released-6-22-17">VERSION: 0.7.1 (Released 6/22/17)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-0-7-0-released-5-5-17">VERSION: 0.7.0 (Released 5/5/17)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-0-6-0-released-12-9-16">VERSION: 0.6.0 (Released 12/9/16)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-0-5-0-released-8-12-16">VERSION: 0.5.0 (Released 8/12/16)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-0-4-1-released-5-27-16">VERSION: 0.4.1 (Released 5/27/16)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-0-4-0-released-2-2-16">VERSION: 0.4.0 (Released 2/2/16)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-0-3-5-released-5-15-15">VERSION: 0.3.5 (Released 5/15/15)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-0-3-4-released-4-10-15">VERSION: 0.3.4 (Released 4/10/15)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-0-3-3-released-10-28-14">VERSION: 0.3.3 (Released 10/28/14)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-0-3-2-released-10-20-14">VERSION: 0.3.2 (Released 10/20/14)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-0-3-1-released-10-1-2014">VERSION: 0.3.1 (Released 10/1/2014)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-0-3-0-released-9-2-2014">VERSION: 0.3.0 (Released 9/2/2014)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-0-2-1-released-7-11-14">VERSION: 0.2.1 (Released 7/11/14)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-0-2-0-released-5-18-14">VERSION: 0.2.0 (Released 5/18/14)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-0-1-6-released-3-3-14">VERSION: 0.1.6 (Released 3/3/14)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-0-1-5-released-2-5-14">VERSION: 0.1.5 (Released 2/5/14)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-0-1-4-released-1-30-14">VERSION: 0.1.4 (Released 1/30/14)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-0-1-3-released-1-24-14">VERSION: 0.1.3 (Released 1/24/14)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-0-1-2-released-1-23-14">VERSION: 0.1.2 (Released 1/23/14)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-0-1-1-released-1-21-14">VERSION: 0.1.1 (Released 1/21/14)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-0-1-0-released-1-9-2014">VERSION: 0.1.0 (Released 1/9/2014)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-0-0-5-released-11-19-2013">VERSION: 0.0.5 (Released 11/19/2013)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-0-0-4-released-8-13-2013">VERSION: 0.0.4 (Released 8/13/2013)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-0-0-3-released-1-1-2012">VERSION: 0.0.3 (Released 1/1/2012)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-0-0-2-released-11-30-2012">VERSION: 0.0.2 (Released 11/30/2012)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-0-0-1-released-10-12-2012">VERSION: 0.0.1 (Released 10/12/2012)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="docTODOs.html">Documentation TODO list</a></li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">KBase Workspace Service Manual</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#manual">Manual</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="fundamentals.html" title="next chapter">Workspace fundamentals</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2012-2017, KBase.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,275 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Workspaces &#8212; KBase Workspace 0.8.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.8.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Objects" href="saveobjects.html" />
+    <link rel="prev" title="Type checking error messages" href="typecheckingerrors.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="workspaces">
+<span id="id1"></span><h1>Workspaces<a class="headerlink" href="#workspaces" title="Permalink to this headline">¶</a></h1>
+<p>Workspaces provide a means to collect multiple typed objects (TOs) into one
+container and share the container with other people. This documentation will
+demonstrate some of the most common operations on workspaces (see
+<a class="reference internal" href="api.html#apidocs"><span class="std std-ref">Workspace API documentation</span></a> for the full API). It assumes that
+a functional client is available (see <a class="reference internal" href="buildinitclient.html#buildinitclient"><span class="std std-ref">Build and initialize the workspace client</span></a>). The examples
+use the Python client, but translating to other clients is trivial.</p>
+<div class="section" id="creating-workspaces">
+<span id="createworkspaces"></span><h2>Creating workspaces<a class="headerlink" href="#creating-workspaces" title="Permalink to this headline">¶</a></h2>
+<p>Create a workspace called MyWorkspace:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">create_workspace</span><span class="p">({</span><span class="s1">&#39;workspace&#39;</span><span class="p">:</span> <span class="s1">&#39;MyWorkspace&#39;</span><span class="p">})</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">4</span><span class="p">]:</span>
+<span class="p">[</span><span class="mi">12</span><span class="p">,</span>                             <span class="c1"># workspace numerical ID</span>
+ <span class="sa">u</span><span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>                 <span class="c1"># workspace name</span>
+ <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>                   <span class="c1"># workspace creator</span>
+ <span class="sa">u</span><span class="s1">&#39;2015-12-13T20:48:00+0000&#39;</span><span class="p">,</span>    <span class="c1"># modification date of the workspace</span>
+ <span class="mi">0</span><span class="p">,</span>                              <span class="c1"># number of objects created in this workspace</span>
+ <span class="sa">u</span><span class="s1">&#39;a&#39;</span><span class="p">,</span>                           <span class="c1"># user&#39;s permission for the workspace</span>
+ <span class="sa">u</span><span class="s1">&#39;n&#39;</span><span class="p">,</span>                           <span class="c1"># global permissions for the workspace</span>
+ <span class="sa">u</span><span class="s1">&#39;unlocked&#39;</span><span class="p">,</span>                    <span class="c1"># whether the workspace is locked</span>
+ <span class="p">{}]</span>                             <span class="c1"># user provided metadata</span>
+</pre></div>
+</div>
+<p>Once created, a workspace’s numerical ID is permanent and unchangeable. A
+locked workspace cannot be altered (other than making it world-readable).</p>
+<p>Note that the object count is the total objects ever created in this
+workspace, not the currently existing objects.</p>
+<div class="section" id="permissions">
+<span id="wsperms"></span><h3>Permissions<a class="headerlink" href="#permissions" title="Permalink to this headline">¶</a></h3>
+<p>Permissions are coded according to the following table:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="17%" />
+<col width="83%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Permission</th>
+<th class="head">Allows</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>n</td>
+<td>No access</td>
+</tr>
+<tr class="row-odd"><td>r</td>
+<td>Read access</td>
+</tr>
+<tr class="row-even"><td>w</td>
+<td>Write access, see permissions of other users</td>
+</tr>
+<tr class="row-odd"><td>a</td>
+<td>Admin access, set permissions of other users</td>
+</tr>
+</tbody>
+</table>
+<p>A workspace can have a description and arbitrary key-value metadata
+associated with it:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">5</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">create_workspace</span><span class="p">({</span><span class="s1">&#39;workspace&#39;</span><span class="p">:</span> <span class="s1">&#39;MyOtherWorkspace&#39;</span><span class="p">,</span>
+   <span class="o">...</span><span class="p">:</span>                      <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Workspace for other things&#39;</span><span class="p">,</span>
+   <span class="o">...</span><span class="p">:</span>                      <span class="s1">&#39;meta&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;contents&#39;</span><span class="p">:</span> <span class="s1">&#39;other things&#39;</span><span class="p">,</span>
+   <span class="o">...</span><span class="p">:</span>                               <span class="s1">&#39;project_id&#39;</span><span class="p">:</span> <span class="s1">&#39;42&#39;</span><span class="p">}</span>
+   <span class="o">...</span><span class="p">:</span>                      <span class="p">})</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">5</span><span class="p">]:</span>
+<span class="p">[</span><span class="mi">13</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;MyOtherWorkspace&#39;</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;2015-12-13T20:51:57+0000&#39;</span><span class="p">,</span>
+ <span class="mi">0</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;a&#39;</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;n&#39;</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;unlocked&#39;</span><span class="p">,</span>
+ <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;contents&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;other things&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;project_id&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;42&#39;</span><span class="p">}]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="retrieving-information-about-workspaces">
+<h2>Retrieving information about workspaces<a class="headerlink" href="#retrieving-information-about-workspaces" title="Permalink to this headline">¶</a></h2>
+<p>The workspace description and information list can be retrieved:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">6</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">get_workspace_description</span><span class="p">({</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="mi">13</span><span class="p">})</span> <span class="c1"># retrieving by ID</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">6</span><span class="p">]:</span> <span class="sa">u</span><span class="s1">&#39;Workspace for other things&#39;</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">11</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">get_workspace_info</span><span class="p">({</span><span class="s1">&#39;workspace&#39;</span><span class="p">:</span> <span class="s1">&#39;MyOtherWorkspace&#39;</span><span class="p">})</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">11</span><span class="p">]:</span>
+<span class="p">[</span><span class="mi">13</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;MyOtherWorkspace&#39;</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;2015-12-13T20:51:57+0000&#39;</span><span class="p">,</span>
+ <span class="mi">0</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;a&#39;</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;n&#39;</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;unlocked&#39;</span><span class="p">,</span>
+ <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;contents&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;other things&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;project_id&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;42&#39;</span><span class="p">}]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="listing-workspaces">
+<h2>Listing workspaces<a class="headerlink" href="#listing-workspaces" title="Permalink to this headline">¶</a></h2>
+<p>Workspaces with at least read access can be listed:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">8</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">list_workspace_info</span><span class="p">({})</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">8</span><span class="p">]:</span>
+ <span class="p">[</span><span class="mi">12</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;2015-12-13T20:48:00+0000&#39;</span><span class="p">,</span>
+  <span class="mi">0</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;a&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;n&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;unlocked&#39;</span><span class="p">,</span>
+  <span class="p">{}],</span>
+ <span class="p">[</span><span class="mi">13</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;MyOtherWorkspace&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;2015-12-13T20:51:57+0000&#39;</span><span class="p">,</span>
+  <span class="mi">0</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;a&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;n&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;unlocked&#39;</span><span class="p">,</span>
+  <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;contents&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;other things&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;project_id&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;42&#39;</span><span class="p">}]]</span>
+</pre></div>
+</div>
+<p>The list can be filtered in several ways. Here it’s filtered by the user
+provided metadata:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">10</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">list_workspace_info</span><span class="p">({</span><span class="s1">&#39;meta&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;project_id&#39;</span><span class="p">:</span> <span class="s1">&#39;42&#39;</span><span class="p">}})</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">10</span><span class="p">]:</span>
+<span class="p">[[</span><span class="mi">13</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;MyOtherWorkspace&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;2015-12-13T20:51:57+0000&#39;</span><span class="p">,</span>
+  <span class="mi">0</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;a&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;n&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;unlocked&#39;</span><span class="p">,</span>
+  <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;contents&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;other things&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;project_id&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;42&#39;</span><span class="p">}]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="sharing-workspaces">
+<h2>Sharing workspaces<a class="headerlink" href="#sharing-workspaces" title="Permalink to this headline">¶</a></h2>
+<p>Users with admin privileges with to a workspace can allow other users
+to read, write to, and administrate the workspace. These privileges apply
+to all objects contained in the workspace.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">12</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">set_permissions</span><span class="p">({</span><span class="s1">&#39;workspace&#39;</span><span class="p">:</span> <span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;users&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;kbasetest2&#39;</span><span class="p">],</span>
+                             <span class="s1">&#39;new_permission&#39;</span><span class="p">:</span> <span class="s1">&#39;a&#39;</span>
+                             <span class="p">})</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">13</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">set_permissions</span><span class="p">({</span><span class="s1">&#39;workspace&#39;</span><span class="p">:</span> <span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;users&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;kbasetest8&#39;</span><span class="p">],</span>
+                             <span class="s1">&#39;new_permission&#39;</span><span class="p">:</span> <span class="s1">&#39;r&#39;</span>
+                             <span class="p">})</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">16</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">get_permissions_mass</span><span class="p">([{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="mi">12</span><span class="p">},</span>
+                                  <span class="p">{</span><span class="s1">&#39;workspace&#39;</span><span class="p">:</span> <span class="s1">&#39;MyOtherWorkspace&#39;</span><span class="p">}</span>
+                                  <span class="p">])</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">16</span><span class="p">]:</span>
+<span class="p">[{</span><span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;kbasetest2&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;kbasetest8&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;r&#39;</span><span class="p">},</span>
+ <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;a&#39;</span><span class="p">}]</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Workspaces</a><ul>
+<li><a class="reference internal" href="#creating-workspaces">Creating workspaces</a><ul>
+<li><a class="reference internal" href="#permissions">Permissions</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#retrieving-information-about-workspaces">Retrieving information about workspaces</a></li>
+<li><a class="reference internal" href="#listing-workspaces">Listing workspaces</a></li>
+<li><a class="reference internal" href="#sharing-workspaces">Sharing workspaces</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="users.html">User documentation</a><ul>
+      <li>Previous: <a href="typecheckingerrors.html" title="previous chapter">Type checking error messages</a></li>
+      <li>Next: <a href="saveobjects.html" title="next chapter">Objects</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/workspaces.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2012-2017, KBase.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/workspaces.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

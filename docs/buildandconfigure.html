@@ -1,0 +1,530 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Build, configure, and deploy &#8212; KBase Workspace 0.8.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.8.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Test" href="test.html" />
+    <link rel="prev" title="Server Administrator Documentation" href="admins.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="build-configure-and-deploy">
+<span id="buildconfigdeploy"></span><h1>Build, configure, and deploy<a class="headerlink" href="#build-configure-and-deploy" title="Permalink to this headline">¶</a></h1>
+<p>These instructions assume the reader is familiar with the process of deploying
+a KBase module, including the <a class="reference external" href="https://github.com/kbase/bootstrap">runtime</a>
+and <a class="reference external" href="https://github.com/kbase/dev_container">dev_container</a>, and has access to
+a system with the KBase runtime installed. These instructions are based on the
+<code class="docutils literal"><span class="pre">kbase-image-v26</span></code> runtime image.</p>
+<p>Unlike many modules the WSS can be built and tested outside the
+<code class="docutils literal"><span class="pre">dev_container</span></code>, but the <code class="docutils literal"><span class="pre">dev_container</span></code> is required to build and test the
+scripts. These instructions are for deploying the server and so do not
+address the scripts. Building outside the <code class="docutils literal"><span class="pre">dev_container</span></code> means the Makefile
+uses several default values for deployment - if you wish to use other values
+deploy from the <code class="docutils literal"><span class="pre">dev_container</span></code> as usual.</p>
+<div class="section" id="build-the-workspace-service">
+<h2>Build the workspace service<a class="headerlink" href="#build-the-workspace-service" title="Permalink to this headline">¶</a></h2>
+<p>First checkout the <code class="docutils literal"><span class="pre">dev_container</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>/kb$ sudo git clone https://github.com/kbase/dev_container
+Cloning into &#39;dev_container&#39;...
+remote: Counting objects: 1097, done.
+remote: Total 1097 (delta 0), reused 0 (delta 0), pack-reused 1097
+Receiving objects: 100% (1097/1097), 138.81 KiB, done.
+Resolving deltas: 100% (661/661), done.
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In the v26 image, <code class="docutils literal"><span class="pre">/kb</span></code> is owned by <code class="docutils literal"><span class="pre">root</span></code>. As an alternative to
+repetitive <code class="docutils literal"><span class="pre">sudo</span></code> s, <code class="docutils literal"><span class="pre">chown</span></code> <code class="docutils literal"><span class="pre">/kb</span></code> to the user.</p>
+</div>
+<p>Bootstrap and source the user environment file, which sets up Java and Perl
+paths which the WSS build needs:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>/kb$ cd dev_container/
+/kb/dev_container$ sudo ./bootstrap /kb/runtime/
+/kb/dev_container$ source user-env.sh
+</pre></div>
+</div>
+<p>Now the WSS may be built. If building inside the <code class="docutils literal"><span class="pre">dev_container</span></code> all the
+dependencies from the <code class="docutils literal"><span class="pre">DEPENDENCIES</span></code> file are required, but to build outside
+the <code class="docutils literal"><span class="pre">dev_container</span></code>, only the <code class="docutils literal"><span class="pre">jars</span></code> and <code class="docutils literal"><span class="pre">workspace_deluxe</span></code> repos are
+necessary:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>~$ mkdir kb
+~$ cd kb
+~/kb$ git clone https://github.com/kbase/workspace_deluxe
+Cloning into &#39;workspace_deluxe&#39;...
+remote: Counting objects: 21961, done.
+remote: Compressing objects: 100% (40/40), done.
+remote: Total 21961 (delta 20), reused 0 (delta 0), pack-reused 21921
+Receiving objects: 100% (21961/21961), 21.42 MiB | 16.27 MiB/s, done.
+Resolving deltas: 100% (13979/13979), done.
+
+~/kb$ git clone https://github.com/kbase/jars
+Cloning into &#39;jars&#39;...
+remote: Counting objects: 1466, done.
+remote: Total 1466 (delta 0), reused 0 (delta 0), pack-reused 1466
+Receiving objects: 100% (1466/1466), 59.43 MiB | 21.49 MiB/s, done.
+Resolving deltas: 100% (626/626), done.
+
+~/kb$ cd workspace_deluxe/
+~/kb/workspace_deluxe$ make
+*snip*
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">make</span></code> will build:</p>
+<ul class="simple">
+<li>A workspace client jar in <code class="docutils literal"><span class="pre">/dist/client</span></code></li>
+<li>A workspace server jar in <code class="docutils literal"><span class="pre">/dist</span></code></li>
+<li>This documentation in <code class="docutils literal"><span class="pre">/docs</span></code></li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>If the build fails due to a sphinx error, sphinx may require an upgrade to
+&gt;= 1.3:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span>$ sudo pip install sphinx --upgrade
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="service-dependencies">
+<span id="servicedeps"></span><h2>Service dependencies<a class="headerlink" href="#service-dependencies" title="Permalink to this headline">¶</a></h2>
+<p>The WSS requires <a class="reference external" href="https://mongodb.org">MongoDB</a> 2.4+ to run. The WSS
+may optionally use:</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/kbase/Shock">Shock</a> as a file storage backend.</li>
+<li>The <a class="reference external" href="https://github.com/kbase/handle_service">Handle Service</a>
+<a class="reference external" href="https://github.com/kbase/handle_service/commit/b9de6991b851e9cd8fa9b5012db565f051e0894f">b9de699</a> +
+and <a class="reference external" href="https://github.com/kbase/handle_mngr">Handle Manager</a>
+<a class="reference external" href="https://github.com/kbase/handle_mngr/commit/3e60998fc22bb331e51b189ae1b71ebd54e58b90">3e60998</a> +
+to allow linking workspace objects to Shock nodes (see
+<a class="reference internal" href="shockintegration.html#shockintegration"><span class="std std-ref">Shock integration with the workspace service</span></a>).</li>
+</ul>
+<p>The WSS has been tested against the auth2 branch of the KBase fork of Shock version 0.9.6
+(e9f0e1618e265042bf5cb96429995b5e6ec0a06a), and against MongoDB versions 2.4.14, 2.6.11, 3.0.8,
+and 3.2.1. 3.0+ versions were tested with and without the WiredTiger storage engine.</p>
+<p>Please see the respective service documentation to set up and run the services
+required.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The alternative to Shock as a file storage backend is MongoDB GridFS.
+GridFS is simpler to set up, but locks the entire database when writing
+files. Since the workspace can consume very large files, this can cause a
+significant impact on other database operations.</p>
+</div>
+</div>
+<div class="section" id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<p>There are two sources of configuration data for the WSS. The first is contained
+in the <code class="docutils literal"><span class="pre">deploy.cfg</span></code> file in the repository root (see
+<a class="reference internal" href="#configurationparameters"><span class="std std-ref">Configuration parameters</span></a>). Copy the provided <code class="docutils literal"><span class="pre">deploy.cfg.example</span></code> file to <code class="docutils literal"><span class="pre">deploy.cfg</span></code>
+to create the file. These parameters may change from invocation to
+invocation of the workspace service. The second is contained in the workspace
+MongoDB database itself and is set once by the configuration script (see
+<a class="reference internal" href="#configurationscript"><span class="std std-ref">Configuration script</span></a>).</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last"><code class="docutils literal"><span class="pre">deploy.cfg</span></code> contains several sets of credentials, and thus should be
+protected like any other file containing unencryted passwords or tokens.
+It is especially important to protect the password / token that the WSS uses
+to talk to Shock (<code class="docutils literal"><span class="pre">backend-secret</span></code> or <code class="docutils literal"><span class="pre">backend-token</span></code>) as if
+access to that account is lost, the new account owner has access to all
+the workspace object data, and recovery will be extremely time consuming
+(use shock admin account to change all the acls for every WSS owned object
+to the new account). At minimum, only the user that runs the WSS (which
+should <strong>not</strong> be <code class="docutils literal"><span class="pre">root</span></code>) should have read access to <code class="docutils literal"><span class="pre">deploy.cfg</span></code>. Also be
+aware that the <code class="docutils literal"><span class="pre">deploy.cfg</span></code> contents are copied to, by default,
+<code class="docutils literal"><span class="pre">/kb/deployment/deployment.cfg</span></code> when the workspace is deployed from the
+<code class="docutils literal"><span class="pre">dev_container</span></code>.</p>
+</div>
+<div class="section" id="configuration-parameters">
+<span id="configurationparameters"></span><h3>Configuration parameters<a class="headerlink" href="#configuration-parameters" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="mongodb-host">
+<h4>mongodb-host<a class="headerlink" href="#mongodb-host" title="Permalink to this headline">¶</a></h4>
+<p><strong>Required</strong>: Yes</p>
+<p><strong>Description</strong>: Host and port of the MongoDB server, eg. localhost:27017</p>
+</div>
+<div class="section" id="mongodb-database">
+<h4>mongodb-database<a class="headerlink" href="#mongodb-database" title="Permalink to this headline">¶</a></h4>
+<p><strong>Required</strong>: Yes</p>
+<p><strong>Description</strong>: Name of the workspace MongoDB database</p>
+</div>
+<div class="section" id="mongodb-user">
+<h4>mongodb-user<a class="headerlink" href="#mongodb-user" title="Permalink to this headline">¶</a></h4>
+<p><strong>Required</strong>: If the MongoDB instance requires authorization</p>
+<p><strong>Description</strong>: Username for an account with readWrite access to the MongoDB
+database</p>
+</div>
+<div class="section" id="mongodb-pwd">
+<h4>mongodb-pwd<a class="headerlink" href="#mongodb-pwd" title="Permalink to this headline">¶</a></h4>
+<p><strong>Required</strong>: If the MongoDB instance requires authorization</p>
+<p><strong>Description</strong>: Password for an account with readWrite access to the MongoDB
+database</p>
+</div>
+<div class="section" id="auth-service-url">
+<h4>auth-service-url<a class="headerlink" href="#auth-service-url" title="Permalink to this headline">¶</a></h4>
+<p><strong>Required</strong>: Yes</p>
+<p><strong>Description</strong>: URL of the KBase authentication service</p>
+</div>
+<div class="section" id="globus-url">
+<h4>globus-url<a class="headerlink" href="#globus-url" title="Permalink to this headline">¶</a></h4>
+<p><strong>Required</strong>: Yes</p>
+<p><strong>Description</strong>: URL of the Globus Nexus v1 authentication API</p>
+</div>
+<div class="section" id="ignore-handle-service">
+<h4>ignore-handle-service<a class="headerlink" href="#ignore-handle-service" title="Permalink to this headline">¶</a></h4>
+<p><strong>Required</strong>: If not using handles</p>
+<p><strong>Description</strong>: Set to anything (<code class="docutils literal"><span class="pre">true</span></code> is good) to not use handles. In this
+case attempting to save an object with a handle will fail. Delete or leave
+blank to use handles (the default).</p>
+</div>
+<div class="section" id="handle-service-url">
+<h4>handle-service-url<a class="headerlink" href="#handle-service-url" title="Permalink to this headline">¶</a></h4>
+<p><strong>Required</strong>: If using handles</p>
+<p><strong>Description</strong>: The URL of the Handle Service</p>
+</div>
+<div class="section" id="handle-manager-url">
+<h4>handle-manager-url<a class="headerlink" href="#handle-manager-url" title="Permalink to this headline">¶</a></h4>
+<p><strong>Required</strong>: If using handles</p>
+<p><strong>Description</strong>: The URL of the Handle Manager</p>
+</div>
+<div class="section" id="handle-manager-token">
+<h4>handle-manager-token<a class="headerlink" href="#handle-manager-token" title="Permalink to this headline">¶</a></h4>
+<p><strong>Required</strong>: If using handles</p>
+<p><strong>Description</strong>: Credentials for the account approved for Handle Manager use</p>
+</div>
+<div class="section" id="ws-admin">
+<h4>ws-admin<a class="headerlink" href="#ws-admin" title="Permalink to this headline">¶</a></h4>
+<p><strong>Required</strong>: No</p>
+<p><strong>Description</strong>: the user name for a workspace administrator. This name, unlike
+names added via the <code class="docutils literal"><span class="pre">administer</span></code> API call, is not permanently stored in the
+database and thus the administrator will change if this name is changed and the
+server restarted. This administrator cannot be removed by the <code class="docutils literal"><span class="pre">administer</span></code>
+API call.</p>
+</div>
+<div class="section" id="backend-token">
+<h4>backend-token<a class="headerlink" href="#backend-token" title="Permalink to this headline">¶</a></h4>
+<p><strong>Required</strong>: If using Shock as the file backend</p>
+<p><strong>Description</strong>: Token for the file backend user account used by
+the WSS to communicate with the backend. The user name is stored in the
+database after being determined by the configuration script.</p>
+</div>
+<div class="section" id="port">
+<h4>port<a class="headerlink" href="#port" title="Permalink to this headline">¶</a></h4>
+<p><strong>Required</strong>: Yes</p>
+<p><strong>Description</strong>: The port on which the service will listen</p>
+</div>
+<div class="section" id="server-threads">
+<h4>server-threads<a class="headerlink" href="#server-threads" title="Permalink to this headline">¶</a></h4>
+<p><strong>Required</strong>: Yes</p>
+<p><strong>Description</strong>: See <a class="reference internal" href="resourcereqs.html#serverthreads"><span class="std std-ref">server-threads</span></a></p>
+</div>
+<div class="section" id="min-memory">
+<h4>min-memory<a class="headerlink" href="#min-memory" title="Permalink to this headline">¶</a></h4>
+<p><strong>Required</strong>: Yes</p>
+<p><strong>Description</strong>: See <a class="reference internal" href="resourcereqs.html#minmaxmemory"><span class="std std-ref">min-memory and max-memory</span></a></p>
+</div>
+<div class="section" id="max-memory">
+<h4>max-memory<a class="headerlink" href="#max-memory" title="Permalink to this headline">¶</a></h4>
+<p><strong>Required</strong>: Yes</p>
+<p><strong>Description</strong>: See <a class="reference internal" href="resourcereqs.html#minmaxmemory"><span class="std std-ref">min-memory and max-memory</span></a></p>
+</div>
+<div class="section" id="temp-dir">
+<h4>temp-dir<a class="headerlink" href="#temp-dir" title="Permalink to this headline">¶</a></h4>
+<p><strong>Required</strong>: Yes</p>
+<p><strong>Description</strong>: See <a class="reference internal" href="resourcereqs.html#tempdir"><span class="std std-ref">temp-dir</span></a></p>
+</div>
+<div class="section" id="mongodb-retry">
+<h4>mongodb-retry<a class="headerlink" href="#mongodb-retry" title="Permalink to this headline">¶</a></h4>
+<p><strong>Required</strong>: No</p>
+<p><strong>Description</strong>: Startup MongoDB reconnect retry count. The workspace will try
+to reconnect 1/s until this limit has been reached. This is useful for starting
+the Workspace automatically after a server restart, as MongoDB can take quite a
+while to get from start to accepting connections. The default is no retries.</p>
+</div>
+<div class="section" id="dont-trust-x-ip-headers">
+<h4>dont-trust-x-ip-headers<a class="headerlink" href="#dont-trust-x-ip-headers" title="Permalink to this headline">¶</a></h4>
+<p><strong>Required</strong>: No</p>
+<p><strong>Description</strong>: When <code class="docutils literal"><span class="pre">true</span></code>, the server ignores the <code class="docutils literal"><span class="pre">X-Forwarded-For</span></code> and
+<code class="docutils literal"><span class="pre">X-Real-IP</span></code> headers. Otherwise (the default behavior), the logged IP address
+for a request, in order of precedence, is 1) the first address in
+<code class="docutils literal"><span class="pre">X-Forwarded-For</span></code>, 2) <code class="docutils literal"><span class="pre">X-Real-IP</span></code>, and 3) the address of the client.</p>
+</div>
+</div>
+<div class="section" id="configuration-script">
+<span id="configurationscript"></span><h3>Configuration script<a class="headerlink" href="#configuration-script" title="Permalink to this headline">¶</a></h3>
+<p>Before starting the WSS for the first time, the database must be configured
+with information about the type database and file backend. This information
+travels with the MongoDB database because it is intrinsic to the overall
+data store - once a type database and file backend are chosen, they cannot be
+changed later without causing massive data inconsistency.</p>
+<p>Prior to configuring the database, MongoDB must be running. If using Shock
+as a backend, Shock must be running.</p>
+<p>To configure the database, run the initialization script, which will step the
+user through the process:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>~/kb/workspace_deluxe$ cd administration/
+~/kb/workspace_deluxe/administration$ ./initialize.py
+Current configuration file:
+mongodb-host=localhost
+mongodb-database=workspace
+handle-service-url=
+handle-manager-url=
+handle-manager-token=
+auth-service-url=https://kbase.us/services/auth/api/legacy/KBase/Sessions/Login/
+globus-url=https://kbase.us/services/auth/api/legacy/KBase
+ws-admin=workspaceadmin
+backend-token=
+port=7058
+server-threads=20
+min-memory=10000
+max-memory=15000
+temp-dir=ws_temp_dir
+mongodb-retry=0
+
+Keep this configuration? [y - keep]/n - discard: n
+Discarding current local configuration.
+Please enter value for mongodb-host: localhost
+Please enter value for mongodb-database: ws_db
+Does mongodb require authentication? [y - yes]/n - no: n
+Ok, commenting out authorization information.
+Attempting to connect to mongodb database &quot;ws_db&quot; at localhost... Connected.
+Please enter the name of the mongodb type database: ws_db_types
+Choose a backend:  [s - shock]/g - gridFS: s
+Please enter the url of the shock server: http://localhost:7044
+Please enter an authentication token for the workspace shock user account: [redacted]
+Validating token with auth server at https://kbase.us/services/auth/api/legacy/KBase/Sessions/Login/
+Successfully set DB configuration:
+type_db=ws_db_types
+backend=shock
+shock_location=http://localhost:7044/
+shock_user=gaprice
+
+Saving local configuration file:
+mongodb-host=localhost
+mongodb-database=ws_db
+handle-service-url=
+handle-manager-url=
+handle-manager-token=
+auth-service-url=https://kbase.us/services/auth/api/legacy/KBase/Sessions/Login/
+globus-url=https://kbase.us/services/auth/api/legacy/KBase
+ws-admin=workspaceadmin
+backend-token=[redacted]
+port=7058
+server-threads=20
+min-memory=10000
+max-memory=15000
+temp-dir=ws_temp_dir
+mongodb-retry=0
+
+Configuration saved.
+</pre></div>
+</div>
+<p>Note that the configuration script will only alter the <code class="docutils literal"><span class="pre">mongodb-*</span></code> and
+<code class="docutils literal"><span class="pre">backend-secret</span></code> parameters. Other parameters must be altered through
+manually editing <code class="docutils literal"><span class="pre">deploy.cfg</span></code>.</p>
+<p>Also, do not, under any circumstances, use <code class="docutils literal"><span class="pre">kbasetest</span></code> as the account with
+which the WSS will communicate with Shock.</p>
+<p>Once the database is started and <code class="docutils literal"><span class="pre">deploy.cfg</span></code> is filled in to the user’s
+satisfaction, the server may be deployed and started.</p>
+</div>
+</div>
+<div class="section" id="deploy-and-start-the-server">
+<h2>Deploy and start the server<a class="headerlink" href="#deploy-and-start-the-server" title="Permalink to this headline">¶</a></h2>
+<p>To avoid various issues when deploying, <code class="docutils literal"><span class="pre">chown</span></code> the deployment directory
+to the user. Alternatively, chown <code class="docutils literal"><span class="pre">/kb/</span></code> to the user, or deploy as root.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>~/kb/workspace_deluxe$ sudo mkdir /kb/deployment
+~/kb/workspace_deluxe$ sudo chown ubuntu /kb/deployment
+~/kb/workspace_deluxe$ make deploy
+*snip*
+Makefile:53: Warning! Running outside the dev_container - scripts will not be deployed or tested.
+</pre></div>
+</div>
+<p>Since the service was deployed outside of the <code class="docutils literal"><span class="pre">dev_container</span></code>, the service
+needs to be told where <code class="docutils literal"><span class="pre">deploy.cfg</span></code> is located. When built in the
+<code class="docutils literal"><span class="pre">dev_container</span></code>, the contents of <code class="docutils literal"><span class="pre">deploy.cfg</span></code> are automatically copied to
+a global configuration and this step is not necessary.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>~/kb/workspace_deluxe$ export KB_DEPLOYMENT_CONFIG=~/kb/workspace_deluxe/deploy.cfg
+</pre></div>
+</div>
+<p>Next, start the service. If using Shock or the Handle services, ensure they are
+up and running before starting the WSS.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>~/kb/workspace_deluxe$ /kb/deployment/services/workspace/start_service
+Creating domain Workspace at /kb/deployment/services/workspace/glassfish_domain
+Using default port 4848 for Admin.
+Using default port 8080 for HTTP Instance.
+*snip*
+No domain initializers found, bypassing customization step
+Domain Workspace created.
+Domain Workspace admin port is 4848.
+Domain Workspace allows admin login as user &quot;admin&quot; with no password.
+Command create-domain executed successfully.
+Starting domain Workspace
+Waiting for Workspace to start .......
+Successfully started the domain : Workspace
+domain  Location: /kb/deployment/services/workspace/glassfish_domain/Workspace
+Log File: /kb/deployment/services/workspace/glassfish_domain/Workspace/logs/server.log
+Admin Port: 4848
+Command start-domain executed successfully.
+Removing options []
+Setting option -Xms10000m
+Removing options [&#39;-Xmx512m&#39;]
+Setting option -Xmx15000m
+Restarting Workspace, please wait
+Successfully restarted the domain
+Command restart-domain executed successfully.
+Creating property KB_DEPLOYMENT_CONFIG=/home/ubuntu/kb/workspace_deluxe/deploy.cfg
+Command create-system-properties executed successfully.
+Command create-virtual-server executed successfully.
+Command create-threadpool executed successfully.
+Command create-http-listener executed successfully.
+server.network-config.network-listeners.network-listener.http-listener-7058.thread-pool=thread-pool-7058
+Command set executed successfully.
+server.network-config.protocols.protocol.http-listener-7058.http.timeout-seconds=1800
+Command set executed successfully.
+Application deployed with name app-7058.
+Command deploy executed successfully.
+The server started successfully.
+</pre></div>
+</div>
+<p>Stop the service:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>~/kb/workspace_deluxe$ /kb/deployment/services/workspace/stop_service
+Domain Workspace exists at /kb/deployment/services/workspace/glassfish_domain, skipping creation
+Domain Workspace is already running on port 4848
+Command undeploy executed successfully.
+Command delete-http-listener executed successfully.
+Command delete-threadpool executed successfully.
+Command delete-virtual-server executed successfully
+</pre></div>
+</div>
+<p>Note that the <code class="docutils literal"><span class="pre">stop_service</span></code> script leaves the Glassfish server running.
+<code class="docutils literal"><span class="pre">kill</span></code> the Glassfish instance to completely shut down the server.</p>
+<p>If any problems occur, check the glassfish logs (by default at
+<code class="docutils literal"><span class="pre">/kb/deployment/services/workspace/glassfish_domain/Workspace/logs/server.log</span></code>
+and system logs (on Ubuntu, at <code class="docutils literal"><span class="pre">/var/log/syslog</span></code>). If the JVM can’t start at
+all (for instance, if the JVM can’t allocate enough memory), the glassfish
+logs are the most likely place to look. If the JVM starts but the workspace
+application does not, the system logs should provide answers.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Build, configure, and deploy</a><ul>
+<li><a class="reference internal" href="#build-the-workspace-service">Build the workspace service</a></li>
+<li><a class="reference internal" href="#service-dependencies">Service dependencies</a></li>
+<li><a class="reference internal" href="#configuration">Configuration</a><ul>
+<li><a class="reference internal" href="#configuration-parameters">Configuration parameters</a><ul>
+<li><a class="reference internal" href="#mongodb-host">mongodb-host</a></li>
+<li><a class="reference internal" href="#mongodb-database">mongodb-database</a></li>
+<li><a class="reference internal" href="#mongodb-user">mongodb-user</a></li>
+<li><a class="reference internal" href="#mongodb-pwd">mongodb-pwd</a></li>
+<li><a class="reference internal" href="#auth-service-url">auth-service-url</a></li>
+<li><a class="reference internal" href="#globus-url">globus-url</a></li>
+<li><a class="reference internal" href="#ignore-handle-service">ignore-handle-service</a></li>
+<li><a class="reference internal" href="#handle-service-url">handle-service-url</a></li>
+<li><a class="reference internal" href="#handle-manager-url">handle-manager-url</a></li>
+<li><a class="reference internal" href="#handle-manager-token">handle-manager-token</a></li>
+<li><a class="reference internal" href="#ws-admin">ws-admin</a></li>
+<li><a class="reference internal" href="#backend-token">backend-token</a></li>
+<li><a class="reference internal" href="#port">port</a></li>
+<li><a class="reference internal" href="#server-threads">server-threads</a></li>
+<li><a class="reference internal" href="#min-memory">min-memory</a></li>
+<li><a class="reference internal" href="#max-memory">max-memory</a></li>
+<li><a class="reference internal" href="#temp-dir">temp-dir</a></li>
+<li><a class="reference internal" href="#mongodb-retry">mongodb-retry</a></li>
+<li><a class="reference internal" href="#dont-trust-x-ip-headers">dont-trust-x-ip-headers</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#configuration-script">Configuration script</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#deploy-and-start-the-server">Deploy and start the server</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="admins.html">Server Administrator Documentation</a><ul>
+      <li>Previous: <a href="admins.html" title="previous chapter">Server Administrator Documentation</a></li>
+      <li>Next: <a href="test.html" title="next chapter">Test</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/buildandconfigure.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2012-2017, KBase.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/buildandconfigure.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

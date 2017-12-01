@@ -1,0 +1,337 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Administration interface &#8212; KBase Workspace 0.8.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.8.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Known administration bugs" href="knownadminbugs.html" />
+    <link rel="prev" title="Workspace resource requirements" href="resourcereqs.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="administration-interface">
+<h1>Administration interface<a class="headerlink" href="#administration-interface" title="Permalink to this headline">¶</a></h1>
+<p>This document describes the administration functions available via the
+<code class="docutils literal"><span class="pre">administer</span></code> API call. All administration calls, including running
+standard workspace operations like <code class="docutils literal"><span class="pre">create_workspace</span></code>, go through
+<code class="docutils literal"><span class="pre">administer</span></code> to avoid accidental use of administrative powers when calling
+the API or using scripts (similar to <code class="docutils literal"><span class="pre">sudo</span></code>).</p>
+<p>First initialize a workspace client with administrator credentials:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">biokbase.workspace.client</span> <span class="k">import</span> <span class="n">Workspace</span>
+<span class="n">wsadmin</span> <span class="o">=</span> <span class="n">Workspace</span><span class="p">(</span><span class="s1">&#39;https://kbase.us/services/ws&#39;</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="p">[</span><span class="n">user</span><span class="p">],</span> <span class="n">password</span><span class="o">=</span><span class="p">[</span><span class="n">pwd</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">These examples use the Python client, but translating the commands to
+other languages is trivial.</p>
+</div>
+<div class="section" id="managing-administrators">
+<h2>Managing administrators<a class="headerlink" href="#managing-administrators" title="Permalink to this headline">¶</a></h2>
+<p>Adding an administrator:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">wsadmin</span><span class="o">.</span><span class="n">administer</span><span class="p">({</span><span class="s1">&#39;command&#39;</span><span class="p">:</span> <span class="s1">&#39;addAdmin&#39;</span><span class="p">,</span> <span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="s1">&#39;lolcats&#39;</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>Listing administrators:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">wsadmin</span><span class="o">.</span><span class="n">administer</span><span class="p">({</span><span class="s1">&#39;command&#39;</span><span class="p">:</span> <span class="s1">&#39;listAdmins&#39;</span><span class="p">})</span>
+<span class="p">[</span><span class="sa">u</span><span class="s1">&#39;lolcats&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;superadminman&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Removing administrators:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">wsadmin</span><span class="o">.</span><span class="n">administer</span><span class="p">({</span><span class="s1">&#39;command&#39;</span><span class="p">:</span> <span class="s1">&#39;removeAdmin&#39;</span><span class="p">,</span> <span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="s1">&#39;lolcats&#39;</span><span class="p">})</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The administrator specified in the <code class="docutils literal"><span class="pre">deploy.cfg</span></code> file cannot be removed by
+this method. See <a class="reference internal" href="buildandconfigure.html#configurationparameters"><span class="std std-ref">Configuration parameters</span></a>.</p>
+</div>
+</div>
+<div class="section" id="managing-module-ownership-requests">
+<h2>Managing module ownership requests<a class="headerlink" href="#managing-module-ownership-requests" title="Permalink to this headline">¶</a></h2>
+<p>See <a class="reference internal" href="typedobjects.html#typedobjectregandver"><span class="std std-ref">Typed object registration &amp; versioning</span></a>.</p>
+<p>List module ownership requests:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">wsadmin</span><span class="o">.</span><span class="n">administer</span><span class="p">({</span><span class="s1">&#39;command&#39;</span><span class="p">:</span> <span class="s1">&#39;listModRequests&#39;</span><span class="p">})</span>
+<span class="p">[{</span><span class="sa">u</span><span class="s1">&#39;moduleName&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;KBaseLolCats&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;ownerUserId&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;jkbaumohl&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;withChangeOwnersPrivilege&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}]</span>
+</pre></div>
+</div>
+<p>Accept module ownership request:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">wsadmin</span><span class="o">.</span><span class="n">administer</span><span class="p">({</span><span class="s1">&#39;command&#39;</span><span class="p">:</span> <span class="s1">&#39;approveModRequest&#39;</span><span class="p">,</span> <span class="s1">&#39;module&#39;</span><span class="p">:</span> <span class="s1">&#39;KBaseLolCats&#39;</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>Reject module ownership request:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">wsadmin</span><span class="o">.</span><span class="n">administer</span><span class="p">({</span><span class="s1">&#39;command&#39;</span><span class="p">:</span> <span class="s1">&#39;denyModRequest&#39;</span><span class="p">,</span> <span class="s1">&#39;module&#39;</span><span class="p">:</span> <span class="s1">&#39;KBaseLolCats&#39;</span><span class="p">})</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="managing-workspaces">
+<h2>Managing workspaces<a class="headerlink" href="#managing-workspaces" title="Permalink to this headline">¶</a></h2>
+<p>Change the owner of a workspace:</p>
+<p>The <code class="docutils literal"><span class="pre">setWorkspaceOwner</span></code> command is more complex than the commands seen so
+far. It takes a map with a <code class="docutils literal"><span class="pre">param</span></code> key that maps to a map with the
+keys:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">wsi</span></code> - a <code class="docutils literal"><span class="pre">WorkspaceIdentity</span></code> as specified in the API specification.
+Required.</li>
+<li><code class="docutils literal"><span class="pre">new_user</span></code> - the user who will own the workspace. Required.</li>
+<li><code class="docutils literal"><span class="pre">new_name</span></code> - the new name of the workspace. Optional.</li>
+</ul>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">wsadmin</span><span class="o">.</span><span class="n">administer</span><span class="p">(</span>
+    <span class="p">{</span><span class="s1">&#39;command&#39;</span><span class="p">:</span> <span class="s1">&#39;setWorkspaceOwner&#39;</span><span class="p">,</span>
+     <span class="s1">&#39;params&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;wsi&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;workspace&#39;</span><span class="p">:</span> <span class="s1">&#39;someuser:lolcats&#39;</span><span class="p">},</span>
+                <span class="s1">&#39;new_user&#39;</span><span class="p">:</span> <span class="s1">&#39;jkbaumohl&#39;</span>
+                <span class="p">}</span>
+     <span class="p">})</span>
+<span class="p">[</span><span class="mi">3303</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;jkbaumohl:lolcats&#39;</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;jkbaumohl&#39;</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;2015-12-13T00:45:06+0000&#39;</span><span class="p">,</span>
+ <span class="mi">0</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;a&#39;</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;n&#39;</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;unlocked&#39;</span><span class="p">,</span>
+ <span class="p">{}]</span>
+</pre></div>
+</div>
+<p>Note that the workspace is automatically renamed such that the user prefix
+matches the new user.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Only a workspace administrator can change workspace ownership.</p>
+</div>
+<p>List all workspace owners:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">wsadmin</span><span class="o">.</span><span class="n">administer</span><span class="p">({</span><span class="s1">&#39;command&#39;</span><span class="p">:</span> <span class="s1">&#39;listWorkspaceOwners&#39;</span><span class="p">})</span>
+<span class="p">[</span><span class="sa">u</span><span class="s1">&#39;auser&#39;</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;anotheruser&#39;</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;yetanotheruser&#39;</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;jkbaumohl&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="general-workspace-commands">
+<h2>General workspace commands<a class="headerlink" href="#general-workspace-commands" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal"><span class="pre">administer</span></code> interface allows running normal WSS API methods while
+acting as a different user (except in a few cases, see below). The commands
+all have the same basic structure:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">wsadmin</span><span class="o">.</span><span class="n">administer</span><span class="p">(</span>
+    <span class="p">{</span><span class="s1">&#39;command&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">method</span> <span class="n">name</span> <span class="n">inCamelCase</span><span class="p">],</span>
+     <span class="s1">&#39;params&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="n">parameters</span> <span class="n">of</span> <span class="n">the</span> <span class="n">method</span> <span class="n">per</span> <span class="n">the</span> <span class="n">API</span> <span class="n">specification</span><span class="p">]</span>
+     <span class="s1">&#39;user&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="n">username</span> <span class="n">under</span> <span class="n">which</span> <span class="n">the</span> <span class="n">command</span> <span class="n">will</span> <span class="n">run</span><span class="p">]</span>
+    <span class="p">})</span>
+</pre></div>
+</div>
+<p>The methods currently available are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="64%" />
+<col width="36%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Method</th>
+<th class="head"><code class="docutils literal"><span class="pre">user</span></code> required</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>createWorkspace</td>
+<td>yes</td>
+</tr>
+<tr class="row-odd"><td>setPermissions</td>
+<td>no</td>
+</tr>
+<tr class="row-even"><td>getPermissions (DEPRECATED)</td>
+<td>optional (1)</td>
+</tr>
+<tr class="row-odd"><td>getPermissionsMass</td>
+<td>no</td>
+</tr>
+<tr class="row-even"><td>getWorkspaceInfo</td>
+<td>no</td>
+</tr>
+<tr class="row-odd"><td>getObjectInfo</td>
+<td>no (2)</td>
+</tr>
+<tr class="row-even"><td>getObjectHistory</td>
+<td>no</td>
+</tr>
+<tr class="row-odd"><td>getObjects</td>
+<td>no (3)</td>
+</tr>
+<tr class="row-even"><td>setGlobalPermission</td>
+<td>yes</td>
+</tr>
+<tr class="row-odd"><td>saveObjects</td>
+<td>yes</td>
+</tr>
+<tr class="row-even"><td>listWorkspaces</td>
+<td>yes</td>
+</tr>
+<tr class="row-odd"><td>listWorkspaceIDs</td>
+<td>yes</td>
+</tr>
+<tr class="row-even"><td>listObjects</td>
+<td>optional (4)</td>
+</tr>
+<tr class="row-odd"><td>deleteWorkspace</td>
+<td>no</td>
+</tr>
+<tr class="row-even"><td>undeleteWorkspace</td>
+<td>no</td>
+</tr>
+<tr class="row-odd"><td>grantModuleOwnership</td>
+<td>no</td>
+</tr>
+<tr class="row-even"><td>removeModuleOwnership</td>
+<td>no</td>
+</tr>
+</tbody>
+</table>
+<ol class="arabic simple">
+<li>If omitted, returns the permissions as if the user is an administrator of the workspace.</li>
+<li>Parameters are as get_object_info3.</li>
+<li>Parameters are as get_objects2.</li>
+<li>If omitted, returns all objects requested, but at least one and no more than 1000 workspaces
+must be specified.</li>
+</ol>
+<p>Example usage:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">wsadmin</span><span class="o">.</span><span class="n">administer</span><span class="p">(</span>
+    <span class="p">{</span><span class="s1">&#39;command&#39;</span><span class="p">:</span> <span class="s1">&#39;createWorkspace&#39;</span><span class="p">,</span>
+     <span class="s1">&#39;params&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;workspace&#39;</span><span class="p">:</span> <span class="s1">&#39;morelolcats&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Golly, I really love lolcats.&#39;</span>
+                <span class="p">},</span>
+     <span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="s1">&#39;jkbaumohl&#39;</span>
+     <span class="p">})</span>
+<span class="p">[</span><span class="mi">3304</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;morelolcats&#39;</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;jkbaumohl&#39;</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;2015-12-13T01:16:50+0000&#39;</span><span class="p">,</span>
+ <span class="mi">0</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;a&#39;</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;n&#39;</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;unlocked&#39;</span><span class="p">,</span>
+ <span class="p">{}]</span>
+
+<span class="n">wsadmin</span><span class="o">.</span><span class="n">administer</span><span class="p">(</span>
+    <span class="p">{</span><span class="s1">&#39;command&#39;</span><span class="p">:</span> <span class="s1">&#39;getPermissions&#39;</span><span class="p">,</span>
+     <span class="s1">&#39;params&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="mi">3304</span><span class="p">},</span>
+     <span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="s1">&#39;superadminman&#39;</span>
+     <span class="p">})</span>
+<span class="p">{</span><span class="sa">u</span><span class="s1">&#39;superadminman&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;n&#39;</span><span class="p">}</span>
+
+<span class="n">wsadmin</span><span class="o">.</span><span class="n">administer</span><span class="p">(</span>
+    <span class="p">{</span><span class="s1">&#39;command&#39;</span><span class="p">:</span> <span class="s1">&#39;setPermissions&#39;</span><span class="p">,</span>
+     <span class="s1">&#39;params&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="mi">3304</span><span class="p">,</span>
+                <span class="s1">&#39;new_permission&#39;</span><span class="p">:</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;users&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;superadminman&#39;</span><span class="p">]</span>
+                <span class="p">}</span>
+     <span class="p">})</span>
+
+<span class="n">wsadmin</span><span class="o">.</span><span class="n">administer</span><span class="p">(</span>
+    <span class="p">{</span><span class="s1">&#39;command&#39;</span><span class="p">:</span> <span class="s1">&#39;getPermissions&#39;</span><span class="p">,</span>
+     <span class="s1">&#39;params&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="mi">3304</span><span class="p">},</span>
+     <span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="s1">&#39;superadminman&#39;</span><span class="p">})</span>
+<span class="p">{</span><span class="sa">u</span><span class="s1">&#39;jkbaumohl&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;superadminman&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;w&#39;</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Administration interface</a><ul>
+<li><a class="reference internal" href="#managing-administrators">Managing administrators</a></li>
+<li><a class="reference internal" href="#managing-module-ownership-requests">Managing module ownership requests</a></li>
+<li><a class="reference internal" href="#managing-workspaces">Managing workspaces</a></li>
+<li><a class="reference internal" href="#general-workspace-commands">General workspace commands</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="admins.html">Server Administrator Documentation</a><ul>
+      <li>Previous: <a href="resourcereqs.html" title="previous chapter">Workspace resource requirements</a></li>
+      <li>Next: <a href="knownadminbugs.html" title="next chapter">Known administration bugs</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/administrationinterface.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2012-2017, KBase.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/administrationinterface.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

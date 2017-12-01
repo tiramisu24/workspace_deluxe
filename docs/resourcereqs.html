@@ -1,0 +1,256 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Workspace resource requirements &#8212; KBase Workspace 0.8.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.8.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Administration interface" href="administrationinterface.html" />
+    <link rel="prev" title="Test" href="test.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="workspace-resource-requirements">
+<h1>Workspace resource requirements<a class="headerlink" href="#workspace-resource-requirements" title="Permalink to this headline">¶</a></h1>
+<p>Several configuration variables define resources which are assigned to the
+WSS.</p>
+<div class="section" id="configuration-variables">
+<h2>Configuration variables<a class="headerlink" href="#configuration-variables" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="21%" />
+<col width="18%" />
+<col width="62%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Variable</th>
+<th class="head">Default</th>
+<th class="head">Notes</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>temp-dir</td>
+<td>ws_temp_dir</td>
+<td>Change to an appropriate location.</td>
+</tr>
+<tr class="row-odd"><td>server-threads</td>
+<td>20</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>min-memory</td>
+<td>10000</td>
+<td>In MB.</td>
+</tr>
+<tr class="row-odd"><td>max-memory</td>
+<td>15000</td>
+<td>In MB.</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="temp-dir">
+<span id="tempdir"></span><h3>temp-dir<a class="headerlink" href="#temp-dir" title="Permalink to this headline">¶</a></h3>
+<p><strong>temp-dir</strong> determines where the workspace writes temporary files. The
+workspace is by default configured to need no more than 80GB of space at one
+time (see <a class="reference internal" href="#disk-usage"><span class="std std-ref">Disk usage</span></a> below). The faster the drive on which the temp
+files directory is located, the faster the workspace will process large TOs.</p>
+</div>
+<div class="section" id="server-threads">
+<span id="serverthreads"></span><h3>server-threads<a class="headerlink" href="#server-threads" title="Permalink to this headline">¶</a></h3>
+<p><strong>server-threads</strong> determines how many threads the server will run, which
+determines the maximum number of concurrent serviced connections. If more than
+this number of connections occur at the same time, they will be processed in
+the order received. <strong>server-threads</strong> dictates how much memory and disk space
+is needed for the server as a whole - see <a class="reference internal" href="#memory-usage"><span class="std std-ref">Memory usage</span></a> and
+<a class="reference internal" href="#disk-usage"><span class="std std-ref">Disk usage</span></a> below.</p>
+</div>
+<div class="section" id="min-memory-and-max-memory">
+<span id="minmaxmemory"></span><h3>min-memory and max-memory<a class="headerlink" href="#min-memory-and-max-memory" title="Permalink to this headline">¶</a></h3>
+<p><strong>min-memory</strong> and <strong>max-memory</strong> set the minimum and maximum memory the
+Glassfish server, as a whole, will use (e.g. they’re JVM parameters). It is
+assumed no other services run on the Glassfish server.</p>
+</div>
+</div>
+<div class="section" id="memory-usage">
+<span id="id1"></span><h2>Memory usage<a class="headerlink" href="#memory-usage" title="Permalink to this headline">¶</a></h2>
+<p>The workspace currently uses up to 400MB per call for saving data:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="8%" />
+<col width="52%" />
+<col width="40%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Amount</th>
+<th class="head">Use</th>
+<th class="head">If exceeded</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>100MB</td>
+<td>Storage of the raw rpc data as bytes.</td>
+<td>RPC call is dumped to disk.</td>
+</tr>
+<tr class="row-odd"><td>100MB</td>
+<td>Storage of sorted, relabeled TOs</td>
+<td>All TO data is dumped to disk.</td>
+</tr>
+<tr class="row-even"><td>200MB</td>
+<td>Memory for sorting &amp; intermediate
+data per TO (processed serially). See
+<a class="reference internal" href="limits.html#sorting-notes"><span class="std std-ref">Notes on sorting</span></a>.</td>
+<td>Intermediate data is dumped
+to disk or an error is
+returned if sorting takes
+too much memory.</td>
+</tr>
+</tbody>
+</table>
+<p>Returning data is simpler - 300MB is allocated for all TO data, and any TO data
+exceeding this limit is dumped to disk.</p>
+<p>Provenance and user provided metadata are not included in these limits but
+are expected to be small.</p>
+<p>Thus, to be safe the minimum memory for the server should be set to 500MB per
+thread (thus the default 10GB for a 20 thread server).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In the future, we hope to add a thread queue that detects free memory so
+that more threads can run when the memory load is not high (which is
+expected to be the case most of the time).</p>
+</div>
+</div>
+<div class="section" id="disk-usage">
+<span id="id2"></span><h2>Disk usage<a class="headerlink" href="#disk-usage" title="Permalink to this headline">¶</a></h2>
+<p>Disk usage is currently configured to use up to 3GB per call for saving data.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="9%" />
+<col width="53%" />
+<col width="39%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Amount</th>
+<th class="head">Use</th>
+<th class="head">If exceeded</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>1GB</td>
+<td>Storage of the raw rpc data as bytes.</td>
+<td>The server throws an error.</td>
+</tr>
+<tr class="row-odd"><td>1GB</td>
+<td>Storage of sorted, relabeled TOs</td>
+<td>The server throws an error.</td>
+</tr>
+<tr class="row-even"><td>1GB</td>
+<td>Storage of intermediate sort files</td>
+<td>The server throws an error.</td>
+</tr>
+</tbody>
+</table>
+<p>Returning data is configured to use no more than 2GB. Thus, to be perfectly
+safe, 4GB per server thread of temporary disk space should be allocated (thus
+80GB for a 20 thread server).</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Workspace resource requirements</a><ul>
+<li><a class="reference internal" href="#configuration-variables">Configuration variables</a><ul>
+<li><a class="reference internal" href="#temp-dir">temp-dir</a></li>
+<li><a class="reference internal" href="#server-threads">server-threads</a></li>
+<li><a class="reference internal" href="#min-memory-and-max-memory">min-memory and max-memory</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#memory-usage">Memory usage</a></li>
+<li><a class="reference internal" href="#disk-usage">Disk usage</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="admins.html">Server Administrator Documentation</a><ul>
+      <li>Previous: <a href="test.html" title="previous chapter">Test</a></li>
+      <li>Next: <a href="administrationinterface.html" title="next chapter">Administration interface</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/resourcereqs.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2012-2017, KBase.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/resourcereqs.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

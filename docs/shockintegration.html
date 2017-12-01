@@ -1,0 +1,502 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Shock integration with the workspace service &#8212; KBase Workspace 0.8.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.8.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Workspace limits" href="limits.html" />
+    <link rel="prev" title="Locking and publishing workspaces" href="lockpublish.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="shock-integration-with-the-workspace-service">
+<span id="shockintegration"></span><h1>Shock integration with the workspace service<a class="headerlink" href="#shock-integration-with-the-workspace-service" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/kbase/shock_service">Shock</a> is a data storage system
+originally designed for metagenomics data. As such, it is designed for fast
+reads and writes of data structured, for the most part, as linear arrays of
+strings (such as FASTA biologic sequence files), but more generally
+bytestreams.</p>
+<p>In contrast, the WSS is designed for storing the hierarchical data objects used
+in most programming languages and specifically as specified by the KIDL. In
+many cases, bytestream and sequential data may be more efficiently stored in
+and retrieved from Shock, and in the cases of data &gt; 1GB, cannot be stored in
+the WSS (see <a class="reference internal" href="limits.html#limits"><span class="std std-ref">Workspace limits</span></a>).</p>
+<p>This document describes how to use the
+<a class="reference external" href="https://github.com/kbase/handle_service">Handle Service</a> to link WSS
+objects to Shock nodes, such that when the object is shared via the Workspace
+API, the linked Shock nodes are shared (more specifically, made readable) as
+well.
+If a data type developer merely stored a Shock node ID in a workspace object
+as a string, sharing the object would not share the underlying Shock node, and
+sharees would not be able to access the Shock data.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Handles, by their nature, are not necessarily permanent. The owner of the
+data referenced by a handle could remove or otherwise make it inaccessible
+at any time.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Shock nodes shared by the workspace are not unshared if the workspace object
+containing the Shock node handle is unshared. The Shock nodes can always be
+unshared via the Shock API.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Sharing workspace objects containing handles to Shock nodes shares the
+nodes as well. If a workspace object is copied into a user’s workspace and
+that workspace is made public, the Shock nodes are set to publically
+readable.</p>
+</div>
+</div>
+<div class="section" id="resources">
+<h2>Resources<a class="headerlink" href="#resources" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="typedobjects.html#typedobjects"><span class="std std-ref">Workspace typed objects</span></a> describes how to create workspace types.</p>
+<p><a class="reference external" href="https://github.com/MG-RAST/Shock/wiki/API">Shock API</a></p>
+</div>
+<div class="section" id="handles">
+<h2>Handles<a class="headerlink" href="#handles" title="Permalink to this headline">¶</a></h2>
+<p>You can create handles to data in Shock via the Handle Service. The Handle
+Service manages pointers, or handles, to arbitrary pieces of data, and provides
+unique IDs for each handle you create. The type definition for a handle is:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">typedef</span> <span class="n">string</span> <span class="n">HandleId</span><span class="p">;</span>
+<span class="n">typedef</span> <span class="n">structure</span> <span class="p">{</span>
+    <span class="n">HandleId</span> <span class="n">hid</span><span class="p">;</span>
+    <span class="n">string</span> <span class="n">file_name</span><span class="p">;</span>
+    <span class="n">string</span> <span class="nb">id</span><span class="p">;</span>
+    <span class="n">string</span> <span class="nb">type</span><span class="p">;</span>
+    <span class="n">string</span> <span class="n">url</span><span class="p">;</span>
+    <span class="n">string</span> <span class="n">remote_md5</span><span class="p">;</span>
+   <span class="n">string</span> <span class="n">remote_sha1</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">Handle</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>For Shock handles, the fields are defined to be:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="18%" />
+<col width="82%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Member</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>hid</td>
+<td>a unique id assigned to a Handle by the Handle service</td>
+</tr>
+<tr class="row-odd"><td>file_name</td>
+<td>the file’s name</td>
+</tr>
+<tr class="row-even"><td>id</td>
+<td>the shock node id</td>
+</tr>
+<tr class="row-odd"><td>type</td>
+<td>the string “shock”</td>
+</tr>
+<tr class="row-even"><td>url</td>
+<td>the shock server url</td>
+</tr>
+<tr class="row-odd"><td>remote_md5</td>
+<td>the md5 of the shock data</td>
+</tr>
+<tr class="row-even"><td>remote_sha1</td>
+<td>unused</td>
+</tr>
+</tbody>
+</table>
+<p>The remainder of the document covers the procedure for linking a Workspace
+object to a Shock node.</p>
+</div>
+<div class="section" id="step-1-save-data-to-shock-with-a-handle-in-the-handle-service">
+<h2>Step 1 - save data to Shock with a Handle in the Handle Service<a class="headerlink" href="#step-1-save-data-to-shock-with-a-handle-in-the-handle-service" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="method-1-use-the-perl-handleservice-client">
+<h3>Method 1 - use the Perl HandleService client<a class="headerlink" href="#method-1-use-the-perl-handleservice-client" title="Permalink to this headline">¶</a></h3>
+<p>The Perl HandleService client makes creating a handle to shock data simple - it
+uploads the file to Shock and creates a handle in one step:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$hs = Bio::KBase::HandleService-&gt;new();
+$handle = $hs-&gt;upload($filename);
+</pre></div>
+</div>
+<p>The ID of the handle can then be retrieved via the hid field:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$hid = $handle-&gt;{hid};
+</pre></div>
+</div>
+<p>If the Shock data already exists, merely persist a handle you create (leave the
+hid field empty for this usage):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$hid = $hs-&gt;persist_handle($handle);
+</pre></div>
+</div>
+</div>
+<div class="section" id="method-2-pre-existing-shock-data-without-the-handleservice-client">
+<h3>Method 2 - pre-existing Shock data without the HandleService client<a class="headerlink" href="#method-2-pre-existing-shock-data-without-the-handleservice-client" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="save-data-to-shock">
+<h4>Save data to Shock<a class="headerlink" href="#save-data-to-shock" title="Permalink to this headline">¶</a></h4>
+<p>Here it is assumed that you are familiar with the Shock API, but as an
+example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -X POST -H &quot;Authorization: OAuth $TOKEN&quot; -F upload=@important_data.txt https://[shock url]/node
+
+{&quot;status&quot;:200,&quot;data&quot;:{&quot;id&quot;:&quot;e9f1b8b2-0012-47a9-89ef-fb8fad5a2a5e&quot;,
+ &quot;version&quot;:&quot;e757db0fff0398841505c314179e85f8&quot;,&quot;file&quot;:{&quot;name&quot;:
+ *snip*
+ &quot;2014-08-01T13:12:47.091885252-07:00&quot;,&quot;type&quot;:&quot;basic&quot;},&quot;error&quot;:null}
+</pre></div>
+</div>
+</div>
+<div class="section" id="create-one-or-more-handles-to-shock-data">
+<h4>Create one or more handles to Shock data<a class="headerlink" href="#create-one-or-more-handles-to-shock-data" title="Permalink to this headline">¶</a></h4>
+<p>If you’re working in a language other than Perl, you can use the AbstractHandle
+client to persist handles. Here’s a python example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="kn">from</span> <span class="nn">biokbase.AbstractHandle.Client</span> <span class="kn">import</span> <span class="n">AbstractHandle</span>
+<span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">ah</span> <span class="o">=</span> <span class="n">AbstractHandle</span><span class="p">(</span><span class="s1">&#39;https://[handle url]&#39;</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="p">[</span><span class="n">redacted</span><span class="p">])</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="n">handle</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;shock&#39;</span><span class="p">,</span> <span class="s1">&#39;url&#39;</span><span class="p">:</span>
+                  <span class="s1">&#39;https://[shock url]&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;e9f1b8b2-0012-47a9-89ef-fb8fad5a2a5e&#39;</span>
+                  <span class="p">}</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="n">ah</span><span class="o">.</span><span class="n">persist_handle</span><span class="p">(</span><span class="n">handle</span><span class="p">)</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="sa">u</span><span class="s1">&#39;KBH_8&#39;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="method-3-new-shock-data-without-the-handleservice-client">
+<h3>Method 3 - new Shock data without the HandleService client<a class="headerlink" href="#method-3-new-shock-data-without-the-handleservice-client" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="create-one-or-more-handles-for-your-data">
+<h4>Create one or more handles for your data<a class="headerlink" href="#create-one-or-more-handles-for-your-data" title="Permalink to this headline">¶</a></h4>
+<p>Use the Handle Service new_handle method to create handles:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">48</span><span class="p">]:</span> <span class="kn">from</span> <span class="nn">biokbase.AbstractHandle.Client</span> <span class="kn">import</span> <span class="n">AbstractHandle</span>
+<span class="n">In</span> <span class="p">[</span><span class="mi">49</span><span class="p">]:</span> <span class="n">ah</span> <span class="o">=</span> <span class="n">AbstractHandle</span><span class="p">(</span><span class="s1">&#39;https://[handle url]&#39;</span><span class="p">,</span>
+                             <span class="n">user_id</span><span class="o">=</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="p">[</span><span class="n">redacted</span><span class="p">])</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">50</span><span class="p">]:</span> <span class="n">ah</span><span class="o">.</span><span class="n">new_handle</span><span class="p">()</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">50</span><span class="p">]:</span>
+<span class="p">{</span><span class="sa">u</span><span class="s1">&#39;file_name&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;hid&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;KBH_12&#39;</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;70ff43ff-db14-405a-bc03-e4dc46860833&#39;</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;shock&#39;</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;https://[shock url]&#39;</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="save-data-to-the-shock-node-referenced-by-the-handle">
+<h4>Save data to the Shock node referenced by the handle<a class="headerlink" href="#save-data-to-the-shock-node-referenced-by-the-handle" title="Permalink to this headline">¶</a></h4>
+<p>Again, using the Shock API:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -X PUT -H &quot;Authorization: OAuth $KBASETEST_TOKEN&quot; -F upload=@important_data.txt https://[shock url]/node/70ff43ff-db14-405a-bc03-e4dc46860833
+
+{&quot;status&quot;:200,&quot;data&quot;:{&quot;id&quot;:&quot;70ff43ff-db14-405a-bc03-e4dc46860833&quot;,
+ &quot;version&quot;:&quot;458bf368a56ffeeb0a33faa2349b0b7e&quot;,&quot;file&quot;:{&quot;name&quot;:
+ *snip*
+ &quot;2014-08-02T10:32:04.278684787-07:00&quot;,&quot;type&quot;:&quot;basic&quot;},&quot;error&quot;:null}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="step-2-create-a-workspace-type-for-your-data">
+<h2>Step 2 - create a Workspace type for your data<a class="headerlink" href="#step-2-create-a-workspace-type-for-your-data" title="Permalink to this headline">¶</a></h2>
+<p>If a type specification doesn’t already exist for your data, you will need to
+create one. The key point is that you must make the Workspace Service aware
+that your data contains one or more Handle IDs. This is done via the
+<code class="docutils literal"><span class="pre">&#64;id</span> <span class="pre">handle</span></code> annotation (see <a class="reference internal" href="typedobjects.html#idannotations"><span class="std std-ref">ID annotations</span></a>):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">/*</span> <span class="nd">@id</span> <span class="n">handle</span> <span class="o">*/</span>
+<span class="n">typedef</span> <span class="n">string</span> <span class="n">HandleId</span><span class="p">;</span>
+
+<span class="o">/*</span> <span class="nd">@optional</span> <span class="n">file_name</span>
+   <span class="nd">@optional</span> <span class="n">remote_sha1</span>
+   <span class="nd">@optional</span> <span class="n">remote_md5</span>
+<span class="o">*/</span>
+<span class="n">typedef</span> <span class="n">structure</span> <span class="p">{</span>
+    <span class="n">HandleId</span> <span class="n">hid</span><span class="p">;</span>
+    <span class="n">string</span> <span class="n">file_name</span><span class="p">;</span>
+    <span class="n">string</span> <span class="nb">id</span><span class="p">;</span>
+    <span class="n">string</span> <span class="nb">type</span><span class="p">;</span>
+    <span class="n">string</span> <span class="n">url</span><span class="p">;</span>
+    <span class="n">string</span> <span class="n">remote_md5</span><span class="p">;</span>
+    <span class="n">string</span> <span class="n">remote_sha1</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">Handle</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Depending on your requirements, you may wish to mark some of the fields
+optional as above. All the Workspace service absolutely requires is the handle
+ID (<code class="docutils literal"><span class="pre">hid</span></code>), although marking the <code class="docutils literal"><span class="pre">url</span></code> or <code class="docutils literal"><span class="pre">id</span></code> as optional is unwise, as
+the <code class="docutils literal"><span class="pre">Handle</span></code> will not contain enough information for users to retrieve the
+shock data.</p>
+<p>We then can embed Handles in our data type:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">/*</span> <span class="nd">@optional</span> <span class="n">handles</span> <span class="o">*/</span>
+<span class="n">typedef</span> <span class="n">structure</span> <span class="p">{</span>
+    <span class="n">Handle</span> <span class="n">handle</span><span class="p">;</span>
+    <span class="nb">list</span><span class="o">&lt;</span><span class="n">Handle</span><span class="o">&gt;</span> <span class="n">handles</span><span class="p">;</span>
+    <span class="n">string</span> <span class="n">veryimportantstring</span><span class="p">;</span>
+    <span class="nb">int</span> <span class="n">veryimportantint</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">VeryImportantData</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>At this point type creation proceeds along normal lines (see
+<a class="reference internal" href="typedobjects.html#typedobjects"><span class="std std-ref">Workspace typed objects</span></a>).</p>
+</div>
+<div class="section" id="step-3-save-data-with-embedded-handles-to-the-workspace">
+<h2>Step 3 - save data with embedded Handles to the Workspace<a class="headerlink" href="#step-3-save-data-with-embedded-handles-to-the-workspace" title="Permalink to this headline">¶</a></h2>
+<p>Saving data with embedded handles is identical to saving any other WSS object.
+This example assumes the the type described in the previous section is present
+in the VeryImportantModule module and has been registered and released.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="kn">from</span> <span class="nn">biokbase.workspace.client</span> <span class="kn">import</span> <span class="n">Workspace</span>
+<span class="n">In</span> <span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="n">ws</span> <span class="o">=</span> <span class="n">Workspace</span><span class="p">(</span><span class="s1">&#39;https://[workspace url]&#39;</span><span class="p">,</span>
+                       <span class="n">user_id</span><span class="o">=</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="p">[</span><span class="n">redacted</span><span class="p">])</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">13</span><span class="p">]:</span> <span class="n">handle1</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;hid&#39;</span><span class="p">:</span> <span class="s1">&#39;KBH_8&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;e9f1b8b2-0012-47a9-89ef-fb8fad5a2a5e&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://[shock url]&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;shock&#39;</span>
+                    <span class="p">}</span>
+<span class="n">In</span> <span class="p">[</span><span class="mi">14</span><span class="p">]:</span> <span class="n">handle2</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;hid&#39;</span><span class="p">:</span> <span class="s1">&#39;KBH_5&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;ed732169-31a6-4acb-a59c-401d95cc7e3e&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://[shock url]&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;shock&#39;</span>
+                    <span class="p">}</span>
+<span class="n">In</span> <span class="p">[</span><span class="mi">20</span><span class="p">]:</span> <span class="n">vip_data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;handle&#39;</span><span class="p">:</span> <span class="n">handle1</span><span class="p">,</span>
+                     <span class="s1">&#39;handles&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">handle2</span><span class="p">],</span>
+                     <span class="s1">&#39;veryimportantstring&#39;</span><span class="p">:</span> <span class="s1">&#39;My word, I am important&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;veryimportantint&#39;</span><span class="p">:</span> <span class="mi">42</span>
+                     <span class="p">}</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">23</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">save_objects</span><span class="p">(</span>
+             <span class="p">{</span><span class="s1">&#39;workspace&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;objects&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;VeryImportantModule.VeryImportantData-2.0&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">vip_data</span>
+                           <span class="p">}</span>
+                          <span class="p">]</span>
+              <span class="p">})</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">23</span><span class="p">]:</span>
+<span class="p">[[</span><span class="mi">1</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;VeryImportantModule.VeryImportantData-2.0&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;2014-08-01T20:20:58+0000&#39;</span><span class="p">,</span>
+  <span class="mi">13</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+  <span class="mi">2</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;e62152ed3bd328e3001083d0d230ecc0&#39;</span><span class="p">,</span>
+  <span class="mi">302</span><span class="p">,</span>
+  <span class="p">{}]]</span>
+</pre></div>
+</div>
+<p>During the save, the Workspace checks with the Handle Service to confirm the
+user owns the Shock data. If such is not the case, the save will fail.</p>
+</div>
+<div class="section" id="step-4-share-data-in-the-workspace">
+<h2>Step 4 - share data in the Workspace<a class="headerlink" href="#step-4-share-data-in-the-workspace" title="Permalink to this headline">¶</a></h2>
+<p>Sharing data works completely normally.</p>
+</div>
+<div class="section" id="step-5-retrieve-the-data-from-the-workspace">
+<h2>Step 5 - retrieve the data from the Workspace<a class="headerlink" href="#step-5-retrieve-the-data-from-the-workspace" title="Permalink to this headline">¶</a></h2>
+<p>Retrieving the data from the workspace also works normally, but there’s a
+couple of important points. When calling the <code class="docutils literal"><span class="pre">get_objects</span></code>, <code class="docutils literal"><span class="pre">get_objects2</span></code>,
+<code class="docutils literal"><span class="pre">get_referenced_objects</span></code>, <code class="docutils literal"><span class="pre">get_object_subset</span></code>, or
+<code class="docutils literal"><span class="pre">get_object_provenance</span></code> methods:</p>
+<ul class="simple">
+<li>The Handle IDs found in the object are returned in the output as strings, and</li>
+<li>The Workspace makes a request to the Handle Service such that the caller of
+the method is given read access to the data referenced by the handles
+embedded in the object.</li>
+</ul>
+<p>This means that, mostly invisibly, the shock nodes embedded via Handles in a
+Workspace object are shared as the object is shared.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>In [18]: ws.get_objects2({&#39;objects&#39;: [{&#39;ref&#39;: &#39;foo/foo&#39;}]})[&#39;data&#39;]
+Out[18]:
+[{u&#39;created&#39;: u&#39;2014-08-01T20:20:58+0000&#39;,
+  u&#39;creator&#39;: u&#39;kbasetest&#39;,
+  u&#39;data&#39;: {u&#39;handle&#39;: {u&#39;hid&#39;: u&#39;KBH_8&#39;,
+                        u’id&#39;: u&#39;e9f1b8b2-0012-47a9-89ef-fb8fad5a2a5e&#39;,
+                        u&#39;type&#39;: u&#39;shock&#39;,
+                        u&#39;url&#39;: [shock_url]
+                        },
+            u&#39;handles&#39;: [{u&#39;hid&#39;: u&#39;KBH_5&#39;,
+                          u&#39;id&#39;: u&#39;ed732169-31a6-4acb-a59c-401d95cc7e3e&#39;,
+                          u&#39;type&#39;: u&#39;shock&#39;,
+                          u&#39;url&#39;: [shock_url]
+                          }
+                         ],
+            u&#39;veryimportantint&#39;: 42,
+            u&#39;veryimportantstring&#39;: u&#39;My word, I am important&#39;
+            },
+<span class="hll">  u&#39;extracted_ids&#39;: {u&#39;handle&#39;: [u&#39;KBH_8&#39;,
+</span><span class="hll">                                 u&#39;KBH_5&#39;
+</span><span class="hll">                                 ]
+</span><span class="hll">                     },
+</span>  u&#39;info&#39;: [1,
+            u&#39;foo&#39;,
+            u&#39;VeryImportantModule.VeryImportantData-2.0&#39;,
+            u&#39;2014-08-01T20:20:58+0000&#39;,
+            13,
+            u&#39;kbasetest&#39;,
+            2,
+            u&#39;foo&#39;,
+            u&#39;e62152ed3bd328e3001083d0d230ecc0&#39;,
+            302,
+            {}],
+  u&#39;provenance&#39;: [],
+  u&#39;refs&#39;: []}]
+</pre></div>
+</div>
+<p>The Shock data can then be retrieved via the Shock API using the handle
+information embedded in the object.</p>
+<p>If a node has been deleted, the handle service is uncontactable, or some other
+error occurs, the workspace will still return the workspace object. However,
+the error will be embedded in the returned data structure. The handle_error
+field will contain a brief description of the error, and the handle_stacktrace
+field will contain the full stacktrace. If these fields are populated the ACLs
+of some or all of the Shock nodes embedded in the object could not be updated.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">26</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">get_objects2</span><span class="p">({</span><span class="s1">&#39;objects&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;ref&#39;</span><span class="p">:</span> <span class="s1">&#39;foo/foo&#39;</span><span class="p">}]})[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">26</span><span class="p">]:</span>
+<span class="p">[{</span><span class="sa">u</span><span class="s1">&#39;created&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;2014-08-08T00:07:10+0000&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;creator&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;handles&#39;</span><span class="p">:</span> <span class="p">[</span><span class="sa">u</span><span class="s1">&#39;KBH_5&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;KBH_6&#39;</span><span class="p">]},</span>
+  <span class="sa">u</span><span class="s1">&#39;extracted_ids&#39;</span><span class="p">:</span> <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;handle&#39;</span><span class="p">:</span> <span class="p">[</span><span class="sa">u</span><span class="s1">&#39;KBH_6&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;KBH_5&#39;</span><span class="p">]},</span>
+<span class="hll">  <span class="sa">u</span><span class="s1">&#39;handle_error&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;The Handle Manager reported a problem while attempting to set Handle ACLs: Unable to set acl(s) on handles KBH_6, KBH_5&#39;</span><span class="p">,</span>
+</span><span class="hll">  <span class="sa">u</span><span class="s1">&#39;handle_stacktrace&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;us.kbase.common.service.ServerException: Unable to set acl(s) on handles KBH_6, KBH_5</span><span class="se">\n</span>
+</span>  \<span class="n">tat</span> <span class="n">us</span><span class="o">.</span><span class="n">kbase</span><span class="o">.</span><span class="n">common</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">JsonClientCaller</span><span class="o">.</span><span class="n">jsonrpcCall</span><span class="p">(</span><span class="n">JsonClientCaller</span><span class="o">.</span><span class="n">java</span><span class="p">:</span><span class="mi">269</span><span class="p">)</span>\<span class="n">n</span>
+
+  <span class="o">*</span><span class="n">snip</span><span class="o">*</span>
+
+  \<span class="n">tat</span> <span class="n">java</span><span class="o">.</span><span class="n">lang</span><span class="o">.</span><span class="n">Thread</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">Thread</span><span class="o">.</span><span class="n">java</span><span class="p">:</span><span class="mi">724</span><span class="p">)</span>\<span class="n">n</span><span class="s1">&#39;,</span>
+  <span class="sa">u</span><span class="s1">&#39;info&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span>
+            <span class="sa">u</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+            <span class="sa">u</span><span class="s1">&#39;ListHandleIds.HandleList-0.1&#39;</span><span class="p">,</span>
+            <span class="sa">u</span><span class="s1">&#39;2014-08-08T00:07:12+0000&#39;</span><span class="p">,</span>
+            <span class="mi">5</span><span class="p">,</span>
+            <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+            <span class="mi">334</span><span class="p">,</span>
+            <span class="sa">u</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+            <span class="sa">u</span><span class="s1">&#39;d98067db987ccdf5321819b39f73440d&#39;</span><span class="p">,</span>
+            <span class="mi">29</span><span class="p">,</span>
+            <span class="p">{}</span>
+            <span class="p">],</span>
+  <span class="sa">u</span><span class="s1">&#39;provenance&#39;</span><span class="p">:</span> <span class="p">[],</span>
+  <span class="sa">u</span><span class="s1">&#39;refs&#39;</span><span class="p">:</span> <span class="p">[]</span>
+  <span class="p">}</span>
+ <span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Shock integration with the workspace service</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#resources">Resources</a></li>
+<li><a class="reference internal" href="#handles">Handles</a></li>
+<li><a class="reference internal" href="#step-1-save-data-to-shock-with-a-handle-in-the-handle-service">Step 1 - save data to Shock with a Handle in the Handle Service</a><ul>
+<li><a class="reference internal" href="#method-1-use-the-perl-handleservice-client">Method 1 - use the Perl HandleService client</a></li>
+<li><a class="reference internal" href="#method-2-pre-existing-shock-data-without-the-handleservice-client">Method 2 - pre-existing Shock data without the HandleService client</a><ul>
+<li><a class="reference internal" href="#save-data-to-shock">Save data to Shock</a></li>
+<li><a class="reference internal" href="#create-one-or-more-handles-to-shock-data">Create one or more handles to Shock data</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#method-3-new-shock-data-without-the-handleservice-client">Method 3 - new Shock data without the HandleService client</a><ul>
+<li><a class="reference internal" href="#create-one-or-more-handles-for-your-data">Create one or more handles for your data</a></li>
+<li><a class="reference internal" href="#save-data-to-the-shock-node-referenced-by-the-handle">Save data to the Shock node referenced by the handle</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#step-2-create-a-workspace-type-for-your-data">Step 2 - create a Workspace type for your data</a></li>
+<li><a class="reference internal" href="#step-3-save-data-with-embedded-handles-to-the-workspace">Step 3 - save data with embedded Handles to the Workspace</a></li>
+<li><a class="reference internal" href="#step-4-share-data-in-the-workspace">Step 4 - share data in the Workspace</a></li>
+<li><a class="reference internal" href="#step-5-retrieve-the-data-from-the-workspace">Step 5 - retrieve the data from the Workspace</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="users.html">User documentation</a><ul>
+      <li>Previous: <a href="lockpublish.html" title="previous chapter">Locking and publishing workspaces</a></li>
+      <li>Next: <a href="limits.html" title="next chapter">Workspace limits</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/shockintegration.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2012-2017, KBase.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/shockintegration.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

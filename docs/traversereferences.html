@@ -1,0 +1,342 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Traversing object references &#8212; KBase Workspace 0.8.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.8.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Locking and publishing workspaces" href="lockpublish.html" />
+    <link rel="prev" title="Subsetting objects" href="getobjectsubdata.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="traversing-object-references">
+<span id="traverseobjects"></span><h1>Traversing object references<a class="headerlink" href="#traversing-object-references" title="Permalink to this headline">¶</a></h1>
+<p>Object to object references, whether dependency or provenance references,
+not only indicate, respectively, objects that are required to compute on or
+understand the origin of the referencing object, but also provide permanent
+access to the referenced objects. The philosophy behind this design is that
+data is useless if it is incomplete (dependency references) or has unknown
+origins (provenance references). The object to object references
+form a graph structure which, in the context of the workspace, allows unlimited
+traversal <em>in the direction of the references</em>. Methods exist to provide
+traversal capabilities in the opposite direction, but only to objects to which
+the user has direct access.</p>
+<p>As usual, it is assumed that a functional client is available (see
+<a class="reference internal" href="buildinitclient.html#buildinitclient"><span class="std std-ref">Build and initialize the workspace client</span></a>). The examples use the Python client, but translating to
+other clients is trivial. Only the most common cases are covered - see the
+<a class="reference internal" href="api.html#apidocs"><span class="std std-ref">Workspace API documentation</span></a> for complete coverage.</p>
+<p>The following examples use this new type specification:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">12</span><span class="p">]:</span> <span class="k">print</span> <span class="n">user1client</span><span class="o">.</span><span class="n">get_module_info</span><span class="p">({</span><span class="s1">&#39;mod&#39;</span><span class="p">:</span> <span class="s1">&#39;Ref&#39;</span><span class="p">})[</span><span class="s1">&#39;spec&#39;</span><span class="p">]</span>
+<span class="n">module</span> <span class="n">Ref</span> <span class="p">{</span>
+
+    <span class="o">/*</span> <span class="nd">@id</span> <span class="n">ws</span> <span class="o">*/</span>
+    <span class="n">typedef</span> <span class="n">string</span> <span class="n">aref</span><span class="p">;</span>
+
+    <span class="n">typedef</span> <span class="n">structure</span> <span class="p">{</span>
+        <span class="n">aref</span> <span class="n">ref</span><span class="p">;</span>
+    <span class="p">}</span> <span class="n">RefType</span><span class="p">;</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="saveobjects.html#saveobjects"><span class="std std-ref">Save an object</span></a> for the <code class="docutils literal"><span class="pre">SimpleObjects</span></code> specification and
+<a class="reference internal" href="saveobjects.html#saveobjectwithrefs"><span class="std std-ref">Save an object with dependency references</span></a> for details regarding saving objects with
+references.</p>
+<p>In the interest of simplicity, saving the example objects is not shown. User 1
+(kbasetest2) saved two objects in their workspace, one of which contains a
+reference to the other:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">28</span><span class="p">]:</span> <span class="n">user1client</span><span class="o">.</span><span class="n">get_objects2</span><span class="p">({</span><span class="s1">&#39;objects&#39;</span><span class="p">:</span>
+                                   <span class="p">[{</span><span class="s1">&#39;ref&#39;</span><span class="p">:</span> <span class="s1">&#39;user1ws/simple&#39;</span><span class="p">},</span>
+                                   <span class="p">{</span><span class="s1">&#39;ref&#39;</span><span class="p">:</span> <span class="s1">&#39;user1ws/refobj1&#39;</span><span class="p">}</span>
+                                   <span class="p">]})[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">28</span><span class="p">]:</span>
+<span class="p">[{</span><span class="sa">u</span><span class="s1">&#39;copy_source_inaccessible&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;created&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;2015-12-18T04:13:15+0000&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;creator&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;kbasetest2&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;a_float&#39;</span><span class="p">:</span> <span class="mf">6.02e-23</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;a_string&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;towel&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;an_int&#39;</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;array_of_maps&#39;</span><span class="p">:</span> <span class="p">[]},</span>
+  <span class="sa">u</span><span class="s1">&#39;extracted_ids&#39;</span><span class="p">:</span> <span class="p">{},</span>
+<span class="hll">  <span class="sa">u</span><span class="s1">&#39;info&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span>
+</span>   <span class="sa">u</span><span class="s1">&#39;simple&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;SimpleObjects.SimpleObject-1.0&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;2015-12-18T04:13:15+0000&#39;</span><span class="p">,</span>
+<span class="hll">   <span class="mi">1</span><span class="p">,</span>
+</span>   <span class="sa">u</span><span class="s1">&#39;kbasetest2&#39;</span><span class="p">,</span>
+<span class="hll">   <span class="mi">13</span><span class="p">,</span>
+</span>   <span class="sa">u</span><span class="s1">&#39;user1ws&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;6b76d883ffa1357e52e1020594317dd7&#39;</span><span class="p">,</span>
+   <span class="mi">70</span><span class="p">,</span>
+   <span class="p">{}],</span>
+  <span class="sa">u</span><span class="s1">&#39;provenance&#39;</span><span class="p">:</span> <span class="p">[],</span>
+  <span class="sa">u</span><span class="s1">&#39;refs&#39;</span><span class="p">:</span> <span class="p">[]},</span>
+ <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;copy_source_inaccessible&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;created&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;2015-12-18T04:14:33+0000&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;creator&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;kbasetest2&#39;</span><span class="p">,</span>
+<span class="hll">  <span class="sa">u</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;ref&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;13/1/1&#39;</span><span class="p">},</span>   <span class="c1"># points at object above</span>
+</span>  <span class="sa">u</span><span class="s1">&#39;extracted_ids&#39;</span><span class="p">:</span> <span class="p">{},</span>
+  <span class="sa">u</span><span class="s1">&#39;info&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;refobj1&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;Ref.RefType-1.0&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;2015-12-18T04:14:33+0000&#39;</span><span class="p">,</span>
+   <span class="mi">1</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;kbasetest2&#39;</span><span class="p">,</span>
+   <span class="mi">13</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;user1ws&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;160cf883f216b170f5d2074652e1bf5d&#39;</span><span class="p">,</span>
+   <span class="mi">16</span><span class="p">,</span>
+   <span class="p">{}],</span>
+  <span class="sa">u</span><span class="s1">&#39;provenance&#39;</span><span class="p">:</span> <span class="p">[],</span>
+<span class="hll">  <span class="sa">u</span><span class="s1">&#39;refs&#39;</span><span class="p">:</span> <span class="p">[</span><span class="sa">u</span><span class="s1">&#39;13/1/1&#39;</span><span class="p">]}]</span>
+</span></pre></div>
+</div>
+<p>This workspace is readable to User 2 (kbasetest8):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">30</span><span class="p">]:</span> <span class="n">user1client</span><span class="o">.</span><span class="n">get_permissions_mass</span><span class="p">(</span>
+             <span class="p">{</span><span class="s1">&#39;workspaces&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;workspace&#39;</span><span class="p">:</span> <span class="s1">&#39;user1ws&#39;</span><span class="p">}]})</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">30</span><span class="p">]:</span> <span class="p">[{</span><span class="sa">u</span><span class="s1">&#39;kbasetest2&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;kbasetest8&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;r&#39;</span><span class="p">}]</span>
+</pre></div>
+</div>
+<p>As such, User 2 saved an object that references User 1’s <code class="docutils literal"><span class="pre">refobj1</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">31</span><span class="p">]:</span> <span class="n">user2client</span><span class="o">.</span><span class="n">get_objects2</span><span class="p">(</span>
+             <span class="p">{</span><span class="s1">&#39;objects&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;ref&#39;</span><span class="p">:</span> <span class="s1">&#39;user2ws/refobj2&#39;</span><span class="p">}]})[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">31</span><span class="p">]:</span>
+<span class="p">[{</span><span class="sa">u</span><span class="s1">&#39;copy_source_inaccessible&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;created&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;2015-12-18T04:16:20+0000&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;creator&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;kbasetest8&#39;</span><span class="p">,</span>
+<span class="hll">  <span class="sa">u</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;ref&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;13/2/1&#39;</span><span class="p">},</span>
+</span>  <span class="sa">u</span><span class="s1">&#39;extracted_ids&#39;</span><span class="p">:</span> <span class="p">{},</span>
+  <span class="sa">u</span><span class="s1">&#39;info&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;refobj2&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;Ref.RefType-1.0&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;2015-12-18T04:16:20+0000&#39;</span><span class="p">,</span>
+   <span class="mi">1</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;kbasetest8&#39;</span><span class="p">,</span>
+   <span class="mi">14</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;user2ws&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;ad38c241c9a46bb940fb4574a343b3c5&#39;</span><span class="p">,</span>
+   <span class="mi">16</span><span class="p">,</span>
+   <span class="p">{}],</span>
+  <span class="sa">u</span><span class="s1">&#39;provenance&#39;</span><span class="p">:</span> <span class="p">[],</span>
+<span class="hll">  <span class="sa">u</span><span class="s1">&#39;refs&#39;</span><span class="p">:</span> <span class="p">[</span><span class="sa">u</span><span class="s1">&#39;13/2/1&#39;</span><span class="p">]}]</span>
+</span></pre></div>
+</div>
+<p>If User 1 now sets <code class="docutils literal"><span class="pre">user1ws</span></code> to unreadable, and worse, deletes the second
+object:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">32</span><span class="p">]:</span> <span class="n">user1client</span><span class="o">.</span><span class="n">set_permissions</span><span class="p">({</span><span class="s1">&#39;workspace&#39;</span><span class="p">:</span> <span class="s1">&#39;user1ws&#39;</span><span class="p">,</span>
+                                      <span class="s1">&#39;users&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;kbasetest8&#39;</span><span class="p">],</span>
+                                      <span class="s1">&#39;new_permission&#39;</span><span class="p">:</span> <span class="s1">&#39;n&#39;</span><span class="p">})</span>
+<span class="n">In</span> <span class="p">[</span><span class="mi">34</span><span class="p">]:</span> <span class="n">user1client</span><span class="o">.</span><span class="n">delete_objects</span><span class="p">([{</span><span class="s1">&#39;ref&#39;</span><span class="p">:</span> <span class="s1">&#39;user1ws/refobj1&#39;</span><span class="p">}])</span>
+</pre></div>
+</div>
+<p>… as expected User 2 now cannot access the object referenced by their
+<code class="docutils literal"><span class="pre">refobj2</span></code> object, which renders it useless.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">35</span><span class="p">]:</span> <span class="n">user2client</span><span class="o">.</span><span class="n">get_objects2</span><span class="p">(</span>
+             <span class="p">{</span><span class="s1">&#39;objects&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;ref&#39;</span><span class="p">:</span> <span class="s1">&#39;user1ws/refobj1&#39;</span><span class="p">}]})[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+<span class="o">--------------------------------------------------------------------------</span>
+<span class="n">ServerError</span>                               <span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">)</span>
+<span class="o">&lt;</span><span class="n">ipython</span><span class="o">-</span><span class="nb">input</span><span class="o">-</span><span class="mi">35</span><span class="o">-</span><span class="mi">7</span><span class="n">c5faa02c112</span><span class="o">&gt;</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span><span class="p">()</span>
+<span class="o">----&gt;</span> <span class="mi">1</span> <span class="n">user2client</span><span class="o">.</span><span class="n">get_objects</span><span class="p">([{</span><span class="s1">&#39;ref&#39;</span><span class="p">:</span> <span class="s1">&#39;user1ws/refobj1&#39;</span><span class="p">}])</span>
+
+<span class="o">*</span><span class="n">snip</span><span class="o">*</span>
+
+<span class="n">ServerError</span><span class="p">:</span> <span class="n">JSONRPCError</span><span class="p">:</span> <span class="o">-</span><span class="mf">32500.</span> <span class="n">Object</span> <span class="n">refobj1</span> <span class="n">cannot</span> <span class="n">be</span> <span class="n">accessed</span><span class="p">:</span> <span class="n">User</span>
+<span class="n">kbasetest8</span> <span class="n">may</span> <span class="ow">not</span> <span class="n">read</span> <span class="n">workspace</span> <span class="n">user1ws</span>
+</pre></div>
+</div>
+<p>However, using the <code class="docutils literal"><span class="pre">get_objects2</span></code> method and providing the path
+from an accessible object to the desired object, User 2 can still retrieve
+the hidden/deleted objects, and thus use <code class="docutils literal"><span class="pre">refobj2</span></code>. The path can be deduced
+from the references in each object:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">51</span><span class="p">]:</span> <span class="n">user2client</span><span class="o">.</span><span class="n">get_objects2</span><span class="p">(</span>
+             <span class="p">{</span><span class="s1">&#39;objects&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;ref&#39;</span><span class="p">:</span> <span class="s1">&#39;user2ws/refobj2&#39;</span><span class="p">}]})[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">51</span><span class="p">]:</span>
+<span class="p">[{</span><span class="sa">u</span><span class="s1">&#39;copy_source_inaccessible&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;created&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;2015-12-18T04:16:20+0000&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;creator&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;kbasetest8&#39;</span><span class="p">,</span>
+<span class="hll">  <span class="sa">u</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;ref&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;13/2/1&#39;</span><span class="p">},</span>
+</span>  <span class="sa">u</span><span class="s1">&#39;extracted_ids&#39;</span><span class="p">:</span> <span class="p">{},</span>
+  <span class="sa">u</span><span class="s1">&#39;info&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;refobj2&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;Ref.RefType-1.0&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;2015-12-18T04:16:20+0000&#39;</span><span class="p">,</span>
+   <span class="mi">1</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;kbasetest8&#39;</span><span class="p">,</span>
+   <span class="mi">14</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;user2ws&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;ad38c241c9a46bb940fb4574a343b3c5&#39;</span><span class="p">,</span>
+   <span class="mi">16</span><span class="p">,</span>
+   <span class="p">{}],</span>
+  <span class="sa">u</span><span class="s1">&#39;provenance&#39;</span><span class="p">:</span> <span class="p">[],</span>
+<span class="hll">  <span class="sa">u</span><span class="s1">&#39;refs&#39;</span><span class="p">:</span> <span class="p">[</span><span class="sa">u</span><span class="s1">&#39;13/2/1&#39;</span><span class="p">]}]</span>
+</span>
+<span class="n">In</span> <span class="p">[</span><span class="mi">52</span><span class="p">]:</span> <span class="n">user2client</span><span class="o">.</span><span class="n">get_objects2</span><span class="p">(</span>
+             <span class="p">{</span><span class="s1">&#39;objects&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;ref&#39;</span><span class="p">:</span> <span class="s1">&#39;user2ws/refobj2&#39;</span><span class="p">,</span>
+<span class="hll">                           <span class="s1">&#39;obj_path&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;ref&#39;</span><span class="p">:</span> <span class="s1">&#39;13/2/1&#39;</span><span class="p">}]</span>
+</span>                           <span class="p">}</span>
+                          <span class="p">]})</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">52</span><span class="p">]:</span>
+<span class="p">[{</span><span class="sa">u</span><span class="s1">&#39;copy_source_inaccessible&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;created&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;2015-12-18T04:14:33+0000&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;creator&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;kbasetest2&#39;</span><span class="p">,</span>
+<span class="hll">  <span class="sa">u</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;ref&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;13/1/1&#39;</span><span class="p">},</span>
+</span>  <span class="sa">u</span><span class="s1">&#39;extracted_ids&#39;</span><span class="p">:</span> <span class="p">{},</span>
+  <span class="sa">u</span><span class="s1">&#39;info&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;refobj1&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;Ref.RefType-1.0&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;2015-12-18T04:14:33+0000&#39;</span><span class="p">,</span>
+   <span class="mi">1</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;kbasetest2&#39;</span><span class="p">,</span>
+   <span class="mi">13</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;user1ws&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;160cf883f216b170f5d2074652e1bf5d&#39;</span><span class="p">,</span>
+   <span class="mi">16</span><span class="p">,</span>
+   <span class="p">{}],</span>
+  <span class="sa">u</span><span class="s1">&#39;provenance&#39;</span><span class="p">:</span> <span class="p">[],</span>
+<span class="hll">  <span class="sa">u</span><span class="s1">&#39;refs&#39;</span><span class="p">:</span> <span class="p">[</span><span class="sa">u</span><span class="s1">&#39;13/1/1&#39;</span><span class="p">]}]</span>
+</span>
+<span class="n">In</span> <span class="p">[</span><span class="mi">53</span><span class="p">]:</span> <span class="n">user2client</span><span class="o">.</span><span class="n">get_objects2</span><span class="p">(</span>
+             <span class="p">{</span><span class="s1">&#39;objects&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;ref&#39;</span><span class="p">:</span> <span class="s1">&#39;user2ws/refobj2&#39;</span><span class="p">,</span>
+<span class="hll">                           <span class="s1">&#39;obj_path&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;ref&#39;</span><span class="p">:</span> <span class="s1">&#39;13/2/1&#39;</span><span class="p">},</span>
+</span><span class="hll">                                        <span class="p">{</span><span class="s1">&#39;ref&#39;</span><span class="p">:</span> <span class="s1">&#39;13/1/1&#39;</span><span class="p">}</span>
+</span>                                        <span class="p">]</span>
+                          <span class="p">]})</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">53</span><span class="p">]:</span>
+<span class="p">[{</span><span class="sa">u</span><span class="s1">&#39;copy_source_inaccessible&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;created&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;2015-12-18T04:13:15+0000&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;creator&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;kbasetest2&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;a_float&#39;</span><span class="p">:</span> <span class="mf">6.02e-23</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;a_string&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;towel&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;an_int&#39;</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;array_of_maps&#39;</span><span class="p">:</span> <span class="p">[]},</span>
+  <span class="sa">u</span><span class="s1">&#39;extracted_ids&#39;</span><span class="p">:</span> <span class="p">{},</span>
+  <span class="sa">u</span><span class="s1">&#39;info&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;simple&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;SimpleObjects.SimpleObject-1.0&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;2015-12-18T04:13:15+0000&#39;</span><span class="p">,</span>
+   <span class="mi">1</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;kbasetest2&#39;</span><span class="p">,</span>
+   <span class="mi">13</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;user1ws&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;6b76d883ffa1357e52e1020594317dd7&#39;</span><span class="p">,</span>
+   <span class="mi">70</span><span class="p">,</span>
+   <span class="p">{}],</span>
+  <span class="sa">u</span><span class="s1">&#39;provenance&#39;</span><span class="p">:</span> <span class="p">[],</span>
+  <span class="sa">u</span><span class="s1">&#39;refs&#39;</span><span class="p">:</span> <span class="p">[]}]</span>
+</pre></div>
+</div>
+<p>It is also possible for User 1 to find objects that reference their
+objects if they are readable and not in the deleted state:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">54</span><span class="p">]:</span> <span class="n">user1client</span><span class="o">.</span><span class="n">undelete_objects</span><span class="p">([{</span><span class="s1">&#39;ref&#39;</span><span class="p">:</span> <span class="s1">&#39;13/2&#39;</span><span class="p">}])</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">55</span><span class="p">]:</span> <span class="n">user1client</span><span class="o">.</span><span class="n">list_referencing_objects</span><span class="p">([{</span><span class="s1">&#39;ref&#39;</span><span class="p">:</span> <span class="s1">&#39;user1ws/simple&#39;</span><span class="p">}])</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">55</span><span class="p">]:</span>
+<span class="p">[[[</span><span class="mi">2</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;refobj1&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;Ref.RefType-1.0&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;2015-12-18T04:14:33+0000&#39;</span><span class="p">,</span>
+   <span class="mi">1</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;kbasetest2&#39;</span><span class="p">,</span>
+   <span class="mi">13</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;user1ws&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;160cf883f216b170f5d2074652e1bf5d&#39;</span><span class="p">,</span>
+   <span class="mi">16</span><span class="p">,</span>
+   <span class="p">{}]]]</span>
+</pre></div>
+</div>
+<p>Attempting to list User 2’s object, which references <code class="docutils literal"><span class="pre">refobj1</span></code> and is
+unreadable by User 1, is not possible:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">56</span><span class="p">]:</span> <span class="n">user1client</span><span class="o">.</span><span class="n">list_referencing_objects</span><span class="p">([{</span><span class="s1">&#39;ref&#39;</span><span class="p">:</span> <span class="s1">&#39;user1ws/refobj1&#39;</span><span class="p">}])</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">56</span><span class="p">]:</span> <span class="p">[[]]</span>
+</pre></div>
+</div>
+<p>Note that although not shown, provenance references work exactly the same way.
+This example is, of course, very simple - a single object could have many
+references, and those objects may also have many references, et cetera.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="users.html">User documentation</a><ul>
+      <li>Previous: <a href="getobjectsubdata.html" title="previous chapter">Subsetting objects</a></li>
+      <li>Next: <a href="lockpublish.html" title="next chapter">Locking and publishing workspaces</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/traversereferences.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2012-2017, KBase.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/traversereferences.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

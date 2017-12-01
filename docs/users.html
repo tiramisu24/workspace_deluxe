@@ -1,0 +1,182 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>User documentation &#8212; KBase Workspace 0.8.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.8.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Build documentation" href="builddocs.html" />
+    <link rel="prev" title="Workspace fundamentals" href="fundamentals.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="user-documentation">
+<h1>User documentation<a class="headerlink" href="#user-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="builddocs.html">Build documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="builddocs.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="builddocs.html#getting-the-code">Getting the code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="builddocs.html#build">Build</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="buildinitclient.html">Build and initialize the workspace client</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="buildinitclient.html#python-client">Python client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="buildinitclient.html#java-client">Java client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="buildinitclient.html#perl-client">Perl client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="buildinitclient.html#javascript-client">Javascript client</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="typedobjects.html">Workspace typed objects</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="typedobjects.html#typed-object-basics">Typed object basics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typedobjects.html#typed-object-registration-versioning">Typed object registration &amp; versioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typedobjects.html#typed-object-validation">Typed object validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typedobjects.html#typed-object-annotations">Typed object annotations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="devtypedobjects.html">Developing typed object definitions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="devtypedobjects.html#to-size-and-composition">TO size and composition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="devtypedobjects.html#very-large-objects">Very large objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="devtypedobjects.html#annotations">Annotations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="typecheckingerrors.html">Type checking error messages</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="typecheckingerrors.html#missing-property">Missing property</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typecheckingerrors.html#float-vs-string">Float vs. string</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typecheckingerrors.html#integer-vs-string">Integer vs. string</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typecheckingerrors.html#integer-vs-float">Integer vs. float</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typecheckingerrors.html#string-vs-integer">String vs. integer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typecheckingerrors.html#embedded">Embedded</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typecheckingerrors.html#optional">Optional</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="workspaces.html">Workspaces</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="workspaces.html#creating-workspaces">Creating workspaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workspaces.html#retrieving-information-about-workspaces">Retrieving information about workspaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workspaces.html#listing-workspaces">Listing workspaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workspaces.html#sharing-workspaces">Sharing workspaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="saveobjects.html">Objects</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="saveobjects.html#save-an-object">Save an object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="saveobjects.html#save-a-new-version">Save a new version</a></li>
+<li class="toctree-l2"><a class="reference internal" href="saveobjects.html#save-an-object-with-metadata">Save an object with metadata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="saveobjects.html#save-an-object-with-provenance">Save an object with provenance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="saveobjects.html#save-an-object-with-dependency-references">Save an object with dependency references</a></li>
+<li class="toctree-l2"><a class="reference internal" href="saveobjects.html#list-objects">List objects</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="getobjectsubdata.html">Subsetting objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="traversereferences.html">Traversing object references</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lockpublish.html">Locking and publishing workspaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shockintegration.html">Shock integration with the workspace service</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="shockintegration.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shockintegration.html#resources">Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shockintegration.html#handles">Handles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shockintegration.html#step-1-save-data-to-shock-with-a-handle-in-the-handle-service">Step 1 - save data to Shock with a Handle in the Handle Service</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shockintegration.html#step-2-create-a-workspace-type-for-your-data">Step 2 - create a Workspace type for your data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shockintegration.html#step-3-save-data-with-embedded-handles-to-the-workspace">Step 3 - save data with embedded Handles to the Workspace</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shockintegration.html#step-4-share-data-in-the-workspace">Step 4 - share data in the Workspace</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shockintegration.html#step-5-retrieve-the-data-from-the-workspace">Step 5 - retrieve the data from the Workspace</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="limits.html">Workspace limits</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="limits.html#id1">Limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="limits.html#notes-on-sorting">Notes on sorting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="limits.html#notes-on-workspace-references">Notes on workspace references</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="userfaq.html">FAQ</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="userfaq.html#i-can-release-a-mapping-list-string-etc-type-but-i-cant-save-anything-as-that-type-why-not">I can release a mapping / list / string / etc. type, but I can’t save anything as that type. Why not?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="userfaq.html#why-do-i-keep-getting-type-checking-errors-in-perl-when-i-know-i-created-the-right-type">Why do I keep getting type checking errors in Perl when I know I created the right type?</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="knownuserbugs.html">Known user-facing bugs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">Workspace API documentation</a></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="fundamentals.html" title="previous chapter">Workspace fundamentals</a></li>
+      <li>Next: <a href="builddocs.html" title="next chapter">Build documentation</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/users.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2012-2017, KBase.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/users.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

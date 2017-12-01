@@ -1,0 +1,140 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>FAQ &#8212; KBase Workspace 0.8.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.8.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Known user-facing bugs" href="knownuserbugs.html" />
+    <link rel="prev" title="Workspace limits" href="limits.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="faq">
+<h1>FAQ<a class="headerlink" href="#faq" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="i-can-release-a-mapping-list-string-etc-type-but-i-cant-save-anything-as-that-type-why-not">
+<h2>I can release a mapping / list / string / etc. type, but I can’t save anything as that type. Why not?<a class="headerlink" href="#i-can-release-a-mapping-list-string-etc-type-but-i-cant-save-anything-as-that-type-why-not" title="Permalink to this headline">¶</a></h2>
+<p>The workspace is only intended to store typed objects - e.g. a class or
+structure in the context of a programming language. This confusion arises
+because releasing a type has two conflated meanings. Firstly, releasing a type
+means that types in other KIDL specs can import and use the type. Secondly,
+releasing a type means that the workspace can save objects as that type - but
+the workspace only supports saving KIDL structures.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In the future we may separate these meanings into two separate
+operations, one for releasing a type for use in other types, and one for
+releasing structures for saving to the workspace.</p>
+</div>
+</div>
+<div class="section" id="why-do-i-keep-getting-type-checking-errors-in-perl-when-i-know-i-created-the-right-type">
+<h2>Why do I keep getting type checking errors in Perl when I know I created the right type?<a class="headerlink" href="#why-do-i-keep-getting-type-checking-errors-in-perl-when-i-know-i-created-the-right-type" title="Permalink to this headline">¶</a></h2>
+<p>Perl is weakly typed - e.g. types are coerced as necessary depending on the
+context. This means that you may put an integer into a data structure, but it
+could be coerced to a string in a subsequent operation. The data is currently
+transported to the Workspace Service in JSON, which is strongly typed, as is
+the Workspace Service type checker, so if type coercion occurs the type checker
+will see (for example) a string when an integer is expected and the data will
+fail type checking.</p>
+<p>It may help to dump the data object to JSON and inspect it just before sending
+it to the workspace and look, for example, for quoted integers (in other words,
+strings) where the KIDL type specification requires integers.</p>
+<p>Note that <code class="docutils literal"><span class="pre">Data::Dumper</span></code> coerces all data to strings before dumping and is
+therefore not useful for debugging type checking problems.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">FAQ</a><ul>
+<li><a class="reference internal" href="#i-can-release-a-mapping-list-string-etc-type-but-i-cant-save-anything-as-that-type-why-not">I can release a mapping / list / string / etc. type, but I can’t save anything as that type. Why not?</a></li>
+<li><a class="reference internal" href="#why-do-i-keep-getting-type-checking-errors-in-perl-when-i-know-i-created-the-right-type">Why do I keep getting type checking errors in Perl when I know I created the right type?</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="users.html">User documentation</a><ul>
+      <li>Previous: <a href="limits.html" title="previous chapter">Workspace limits</a></li>
+      <li>Next: <a href="knownuserbugs.html" title="next chapter">Known user-facing bugs</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/userfaq.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2012-2017, KBase.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/userfaq.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

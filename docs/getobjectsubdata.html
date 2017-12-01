@@ -1,0 +1,275 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Subsetting objects &#8212; KBase Workspace 0.8.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.8.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Traversing object references" href="traversereferences.html" />
+    <link rel="prev" title="Objects" href="saveobjects.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="subsetting-objects">
+<h1>Subsetting objects<a class="headerlink" href="#subsetting-objects" title="Permalink to this headline">¶</a></h1>
+<p>When retrieving objects from the WSS, the user may specify which parts of the
+object to retrieve. This is useful for quickly retrieving small portions of
+large objects (to a webpage, for example) rather than having to fetch the
+entire object which might be hundreds of megabytes.</p>
+<p>Note that performing subsetting on small objects may provide little to no
+benefit, and in some cases may be slower, since the WSS has to parse the
+serialized object rather than directly returning the serialized form to the
+client.</p>
+<p>As usual, it is assumed that a functional client is available (see
+<a class="reference internal" href="buildinitclient.html#buildinitclient"><span class="std std-ref">Build and initialize the workspace client</span></a>). The examples use the Python client, but translating to
+other clients is trivial. Only the most common cases are covered - see the
+<a class="reference internal" href="api.html#apidocs"><span class="std std-ref">Workspace API documentation</span></a> for complete coverage.</p>
+<p>For the examples, the following spec was used:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">16</span><span class="p">]:</span> <span class="k">print</span> <span class="n">ws</span><span class="o">.</span><span class="n">get_type_info</span><span class="p">(</span><span class="s2">&quot;SubSetExample.SubSetExample&quot;</span><span class="p">)[</span><span class="s1">&#39;spec_def&#39;</span><span class="p">]</span>
+<span class="n">typedef</span> <span class="n">structure</span> <span class="p">{</span>
+    <span class="n">mapping</span><span class="o">&lt;</span><span class="n">string</span><span class="p">,</span> <span class="n">mapping</span><span class="o">&lt;</span><span class="n">string</span><span class="p">,</span> <span class="n">string</span><span class="o">&gt;&gt;</span> <span class="nb">map</span><span class="p">;</span>
+    <span class="nb">list</span><span class="o">&lt;</span><span class="n">mapping</span><span class="o">&lt;</span><span class="n">string</span><span class="p">,</span> <span class="n">string</span><span class="o">&gt;&gt;</span> <span class="n">array</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">SubSetExample</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>The object in question:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">20</span><span class="p">]:</span> <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;map&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;mid1&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;id1&#39;</span><span class="p">,</span> <span class="s1">&#39;stuff&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">},</span>
+   <span class="o">....</span><span class="p">:</span>                 <span class="s1">&#39;mid2&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;id2&#39;</span><span class="p">,</span> <span class="s1">&#39;stuff&#39;</span><span class="p">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">}</span>
+   <span class="o">....</span><span class="p">:</span>                 <span class="p">},</span>
+   <span class="o">....</span><span class="p">:</span>         <span class="s1">&#39;array&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;id1&#39;</span><span class="p">,</span> <span class="s1">&#39;stuff&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">},</span>
+   <span class="o">....</span><span class="p">:</span>                   <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;id2&#39;</span><span class="p">,</span> <span class="s1">&#39;stuff&#39;</span><span class="p">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">},</span>
+   <span class="o">....</span><span class="p">:</span>                   <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;id3&#39;</span><span class="p">,</span> <span class="s1">&#39;stuff&#39;</span><span class="p">:</span> <span class="s1">&#39;baz&#39;</span><span class="p">}</span>
+   <span class="o">....</span><span class="p">:</span>                   <span class="p">]</span>
+   <span class="o">....</span><span class="p">:</span>         <span class="p">}</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">24</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">save_objects</span><span class="p">(</span>
+             <span class="p">{</span><span class="s1">&#39;workspace&#39;</span><span class="p">:</span> <span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;objects&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;subsetexample&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;SubSetExample.SubSetExample&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">,</span>
+                           <span class="p">}</span>
+                          <span class="p">]</span>
+              <span class="p">})</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">24</span><span class="p">]:</span>
+<span class="p">[[</span><span class="mi">1</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;subsetexample&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;SubSetExample.SubSetExample-1.0&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;2015-12-16T03:57:03+0000&#39;</span><span class="p">,</span>
+  <span class="mi">1</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+  <span class="mi">13</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;f9449880abc5722c7add56e773544719&#39;</span><span class="p">,</span>
+  <span class="mi">168</span><span class="p">,</span>
+  <span class="p">{}]]</span>
+</pre></div>
+</div>
+<p>Get the contents of a single key of the mapping:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">11</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">get_objects2</span><span class="p">({</span><span class="s1">&#39;objects&#39;</span><span class="p">:</span>
+             <span class="p">[{</span><span class="s1">&#39;workspace&#39;</span><span class="p">:</span> <span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;subsetexample&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;included&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;/map/mid1&#39;</span><span class="p">]</span>
+               <span class="p">}</span>
+              <span class="p">]})[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">25</span><span class="p">]:</span>
+<span class="p">[{</span><span class="sa">u</span><span class="s1">&#39;copy_source_inaccessible&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;created&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;2015-12-16T03:57:03+0000&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;creator&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+<span class="hll">  <span class="sa">u</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;map&#39;</span><span class="p">:</span> <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;mid1&#39;</span><span class="p">:</span> <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;id1&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;stuff&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;foo&#39;</span><span class="p">}}},</span>
+</span>  <span class="sa">u</span><span class="s1">&#39;extracted_ids&#39;</span><span class="p">:</span> <span class="p">{},</span>
+  <span class="sa">u</span><span class="s1">&#39;info&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;subsetexample&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;SubSetExample.SubSetExample-1.0&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;2015-12-16T03:57:03+0000&#39;</span><span class="p">,</span>
+   <span class="mi">1</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+   <span class="mi">13</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;f9449880abc5722c7add56e773544719&#39;</span><span class="p">,</span>
+   <span class="mi">168</span><span class="p">,</span>
+   <span class="p">{}],</span>
+  <span class="sa">u</span><span class="s1">&#39;provenance&#39;</span><span class="p">:</span> <span class="p">[],</span>
+  <span class="sa">u</span><span class="s1">&#39;refs&#39;</span><span class="p">:</span> <span class="p">[]}]</span>
+</pre></div>
+</div>
+<p>Get all the <code class="docutils literal"><span class="pre">stuff</span></code> fields from the mapping:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">39</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">get_objects2</span><span class="p">({</span><span class="s1">&#39;objects&#39;</span><span class="p">:</span>
+             <span class="p">[{</span><span class="s1">&#39;workspace&#39;</span><span class="p">:</span> <span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;subsetexample&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;included&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;/map/*/stuff&#39;</span><span class="p">]</span>
+               <span class="p">}</span>
+              <span class="p">]})[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">39</span><span class="p">]:</span>
+<span class="p">[{</span><span class="sa">u</span><span class="s1">&#39;copy_source_inaccessible&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;created&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;2015-12-16T04:04:59+0000&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;creator&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+<span class="hll">  <span class="sa">u</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;map&#39;</span><span class="p">:</span> <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;mid1&#39;</span><span class="p">:</span> <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;stuff&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;foo&#39;</span><span class="p">},</span>
+</span><span class="hll">    <span class="sa">u</span><span class="s1">&#39;mid2&#39;</span><span class="p">:</span> <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;stuff&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;bar&#39;</span><span class="p">}}},</span>
+</span>  <span class="sa">u</span><span class="s1">&#39;extracted_ids&#39;</span><span class="p">:</span> <span class="p">{},</span>
+  <span class="sa">u</span><span class="s1">&#39;info&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;subsetexample&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;SubSetExample.SubSetExample-1.0&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;2015-12-16T04:04:59+0000&#39;</span><span class="p">,</span>
+   <span class="mi">2</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+   <span class="mi">13</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;24cd918528461efcb9d6f6a02c3a7965&#39;</span><span class="p">,</span>
+   <span class="mi">168</span><span class="p">,</span>
+   <span class="p">{}],</span>
+  <span class="sa">u</span><span class="s1">&#39;provenance&#39;</span><span class="p">:</span> <span class="p">[],</span>
+  <span class="sa">u</span><span class="s1">&#39;refs&#39;</span><span class="p">:</span> <span class="p">[]}]</span>
+</pre></div>
+</div>
+<p>Get all the <code class="docutils literal"><span class="pre">id</span></code> fields from the array:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">33</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">get_objects2</span><span class="p">({</span><span class="s1">&#39;objects&#39;</span><span class="p">:</span>
+             <span class="p">[{</span><span class="s1">&#39;workspace&#39;</span><span class="p">:</span> <span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;subsetexample&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;included&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;/array/[*]/id&#39;</span><span class="p">]</span>
+               <span class="p">}</span>
+              <span class="p">]})[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">33</span><span class="p">]:</span>
+<span class="p">[{</span><span class="sa">u</span><span class="s1">&#39;copy_source_inaccessible&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;created&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;2015-12-16T04:04:59+0000&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;creator&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+<span class="hll">  <span class="sa">u</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;array&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="sa">u</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;id1&#39;</span><span class="p">},</span> <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;id2&#39;</span><span class="p">},</span> <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;id3&#39;</span><span class="p">}]},</span>
+</span>  <span class="sa">u</span><span class="s1">&#39;extracted_ids&#39;</span><span class="p">:</span> <span class="p">{},</span>
+  <span class="sa">u</span><span class="s1">&#39;info&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;subsetexample&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;SubSetExample.SubSetExample-1.0&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;2015-12-16T04:04:59+0000&#39;</span><span class="p">,</span>
+   <span class="mi">2</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+   <span class="mi">13</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;24cd918528461efcb9d6f6a02c3a7965&#39;</span><span class="p">,</span>
+   <span class="mi">168</span><span class="p">,</span>
+   <span class="p">{}],</span>
+  <span class="sa">u</span><span class="s1">&#39;provenance&#39;</span><span class="p">:</span> <span class="p">[],</span>
+  <span class="sa">u</span><span class="s1">&#39;refs&#39;</span><span class="p">:</span> <span class="p">[]}]</span>
+</pre></div>
+</div>
+<p>Get the first and third elements of the array (note that the returned array
+is compressed to only 2 cells, but the ordering of the source array is
+maintained):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">35</span><span class="p">]:</span> <span class="n">ws</span><span class="o">.</span><span class="n">get_objects2</span><span class="p">({</span><span class="s1">&#39;objects&#39;</span><span class="p">:</span>
+             <span class="p">[{</span><span class="s1">&#39;workspace&#39;</span><span class="p">:</span> <span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;subsetexample&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;included&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;/array/2&#39;</span><span class="p">,</span> <span class="s1">&#39;/array/0&#39;</span><span class="p">]</span>
+               <span class="p">}</span>
+              <span class="p">]})[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">35</span><span class="p">]:</span>
+<span class="p">[{</span><span class="sa">u</span><span class="s1">&#39;copy_source_inaccessible&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;created&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;2015-12-16T04:04:59+0000&#39;</span><span class="p">,</span>
+  <span class="sa">u</span><span class="s1">&#39;creator&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+<span class="hll">  <span class="sa">u</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;array&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="sa">u</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;id1&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;stuff&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;foo&#39;</span><span class="p">},</span>
+</span>    <span class="p">{</span><span class="sa">u</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;id3&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;stuff&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;baz&#39;</span><span class="p">}]},</span>
+  <span class="sa">u</span><span class="s1">&#39;extracted_ids&#39;</span><span class="p">:</span> <span class="p">{},</span>
+  <span class="sa">u</span><span class="s1">&#39;info&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;subsetexample&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;SubSetExample.SubSetExample-1.0&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;2015-12-16T04:04:59+0000&#39;</span><span class="p">,</span>
+   <span class="mi">2</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;kbasetest&#39;</span><span class="p">,</span>
+   <span class="mi">13</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;MyWorkspace&#39;</span><span class="p">,</span>
+   <span class="sa">u</span><span class="s1">&#39;24cd918528461efcb9d6f6a02c3a7965&#39;</span><span class="p">,</span>
+   <span class="mi">168</span><span class="p">,</span>
+   <span class="p">{}],</span>
+  <span class="sa">u</span><span class="s1">&#39;provenance&#39;</span><span class="p">:</span> <span class="p">[],</span>
+  <span class="sa">u</span><span class="s1">&#39;refs&#39;</span><span class="p">:</span> <span class="p">[]}]</span>
+</pre></div>
+</div>
+<p>The previous two calls can be used to find and fetch portions of an array.
+First fetch the parts of the subdocuments to be used to determine which
+portions of the array are desired, and next fetch the array subdocuments of
+interest based on processing the first query. This approach may or may not
+be faster than fetching the entire array, so the user should test their
+particular use case.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="users.html">User documentation</a><ul>
+      <li>Previous: <a href="saveobjects.html" title="previous chapter">Objects</a></li>
+      <li>Next: <a href="traversereferences.html" title="next chapter">Traversing object references</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/getobjectsubdata.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2012-2017, KBase.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/getobjectsubdata.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

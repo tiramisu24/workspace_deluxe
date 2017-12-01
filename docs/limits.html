@@ -1,0 +1,183 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Workspace limits &#8212; KBase Workspace 0.8.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.8.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="FAQ" href="userfaq.html" />
+    <link rel="prev" title="Shock integration with the workspace service" href="shockintegration.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="workspace-limits">
+<span id="limits"></span><h1>Workspace limits<a class="headerlink" href="#workspace-limits" title="Permalink to this headline">¶</a></h1>
+<p>This document provides a list of limits of the WSS.</p>
+<div class="section" id="id1">
+<h2>Limits<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="88%" />
+<col width="12%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Parameter</th>
+<th class="head">Limit</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Maximum RPC call size</td>
+<td>1.005GB</td>
+</tr>
+<tr class="row-odd"><td>Maximum object size</td>
+<td>1GB</td>
+</tr>
+<tr class="row-even"><td>Maximum total size of returned objects</td>
+<td>1GB</td>
+</tr>
+<tr class="row-odd"><td>Maximum provenance size</td>
+<td>1MB</td>
+</tr>
+<tr class="row-even"><td>Maximum user metadata size</td>
+<td>16000B</td>
+</tr>
+<tr class="row-odd"><td>Maximum total size of user metadata key / value pair</td>
+<td>900B</td>
+</tr>
+<tr class="row-even"><td>Maximum total size of autometadata key / value pair</td>
+<td>900B</td>
+</tr>
+<tr class="row-odd"><td>Maximum memory use for sorting objects</td>
+<td>200MB</td>
+</tr>
+<tr class="row-even"><td>Maximum object_infos returned by list_objects</td>
+<td>10000</td>
+</tr>
+<tr class="row-odd"><td>Maximum workspace references per save</td>
+<td>100000</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="notes-on-sorting">
+<span id="sorting-notes"></span><h2>Notes on sorting<a class="headerlink" href="#notes-on-sorting" title="Permalink to this headline">¶</a></h2>
+<p>The workspace service sorts the contents of all objects before MD5
+calculations, serialization, and storage.</p>
+<p>When sorting objects, object mapping and structure keys in a single path from
+the object root to a single object leaf are stored in memory at one time. The
+memory limit applies to these keys plus the memory required for the object
+itself.</p>
+<p>Objects &gt; 100MB in size are dumped to disk, so the maximum memory allowed for
+keys is 200MB. Objects &lt; 100MB are kept in memory, so the maximum memory
+allowed is 200MB - object size.</p>
+<p>Thus, objects may violate this limit if 1) they have very large maps,
+2) have many very large keys in the same map, or
+3) have very deeply nested maps (which probably still need to be fairly large).</p>
+<p>As a point of reference, sorting a 550MB Network object required only ~10MB of
+memory for keys.</p>
+</div>
+<div class="section" id="notes-on-workspace-references">
+<h2>Notes on workspace references<a class="headerlink" href="#notes-on-workspace-references" title="Permalink to this headline">¶</a></h2>
+<p>The workspace service supports a maximum of 100,000 object references (e.g.
+a reference specified by &#64;id ws in a typespec) per saveObjects() call. The
+references may be in a single object, or spread across many objects.</p>
+<p>References that are duplicated in a single object only count once towards this
+limit.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Workspace limits</a><ul>
+<li><a class="reference internal" href="#id1">Limits</a></li>
+<li><a class="reference internal" href="#notes-on-sorting">Notes on sorting</a></li>
+<li><a class="reference internal" href="#notes-on-workspace-references">Notes on workspace references</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="users.html">User documentation</a><ul>
+      <li>Previous: <a href="shockintegration.html" title="previous chapter">Shock integration with the workspace service</a></li>
+      <li>Next: <a href="userfaq.html" title="next chapter">FAQ</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/limits.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2012-2017, KBase.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/limits.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

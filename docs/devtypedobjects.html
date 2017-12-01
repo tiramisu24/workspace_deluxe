@@ -1,0 +1,194 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Developing typed object definitions &#8212; KBase Workspace 0.8.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.8.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Type checking error messages" href="typecheckingerrors.html" />
+    <link rel="prev" title="Workspace typed objects" href="typedobjects.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="developing-typed-object-definitions">
+<h1>Developing typed object definitions<a class="headerlink" href="#developing-typed-object-definitions" title="Permalink to this headline">¶</a></h1>
+<p>Providing a comprehensive guide for developing type specifications (typespecs)
+for typed objects (TOs) in the Workspace Service (WSS) is far beyond the scope
+of this documentation, but provided here are some general guidelines and hints.</p>
+<div class="section" id="to-size-and-composition">
+<h2>TO size and composition<a class="headerlink" href="#to-size-and-composition" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Generally speaking, the approach of translating each row from a traditional
+RDBMS into a single TO is very wrong. The major advantage of TOs is that
+they allow you to compose various related data into a single object.</li>
+<li>It is faster to save and load a single large TO as opposed to a many small
+TOs. Many small objects will also slow the WSS overall and increase the
+WSS index size.<ul>
+<li>The <code class="docutils literal"><span class="pre">get_objects2</span></code> method allows retrieving subsets of a TO from the
+WSS to provide the equivalent of retrieving a few small TOs rather than
+one large TO and then manually extracting the small TOs.</li>
+</ul>
+</li>
+<li>TOs are currently limited to 1GB by the WSS.</li>
+<li>When contemplating TO design, consider how user interfaces might display
+workspaces and objects. Note that workspaces containing thousands of objects
+quickly become untenable.</li>
+<li>Objects which consist mostly of very long strings are usually much less
+useful when stored in the workspace than more structured data objects.
+Objects like this (for example DNA sequence or raw FASTA files) might be
+candidates for storage in <a class="reference external" href="https://github.com/kbase/shock_service">Shock</a>.</li>
+</ul>
+</div>
+<div class="section" id="very-large-objects">
+<h2>Very large objects<a class="headerlink" href="#very-large-objects" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Although in general, one larger object is better than many smaller objects,
+when objects are in the hundreds of megabytes they become less useful and
+more difficult to deal with.<ul>
+<li>One cannot realistically fetch a very large object (VLO) to a webpage.</li>
+</ul>
+</li>
+<li>Even when using workspace functions to extract subdata from a VLO, the VLO
+must still be loaded from disk into the workspace service, which could take
+significant time.</li>
+<li>VLOs are slow to transfer in general.</li>
+<li>VLOs take a large amount of memory.</li>
+<li>VLOs can often take 3-20 times the size of the serialized object to represent
+in memory.</li>
+<li>Objects with large numbers of <code class="docutils literal"><span class="pre">mapping</span></code> s or <code class="docutils literal"><span class="pre">structure</span></code> s can use large
+amounts of resources due to repeated keys. Consider using <code class="docutils literal"><span class="pre">tuple</span></code> s instead
+of <code class="docutils literal"><span class="pre">mapping</span></code> s or <code class="docutils literal"><span class="pre">structure</span></code> s.</li>
+</ul>
+</div>
+<div class="section" id="annotations">
+<h2>Annotations<a class="headerlink" href="#annotations" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="to-to-to-references-id-ws">
+<h3>TO to TO references (&#64;id ws)<a class="headerlink" href="#to-to-to-references-id-ws" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>TO to TO references using the <code class="docutils literal"><span class="pre">&#64;id</span> <span class="pre">ws</span></code> annotation [see
+<a class="reference internal" href="typedobjects.html#idannotations"><span class="std std-ref">ID annotations</span></a>] greatly enhance the utility of typed objects.</li>
+<li>For example, linking a data set TO to the genome TO that the data set
+references enforces and records the relationship in the workspace database.</li>
+<li>If a TO to be saved references a TO that doesn’t exist, the error is caught
+prior to saving the TO in the workspace.</li>
+<li>If you have access to a TO, you can always access the TOs referenced by that
+TO, regardless of the workspace in which they’re stored.</li>
+<li>However, there is a performance cost - each reference must be checked for
+existence in the database. For tens or even hundreds of references this cost
+is not high, but thousands or more unique references will likely slow
+saving of the TO.</li>
+</ul>
+</div>
+<div class="section" id="optional">
+<h3>&#64;optional<a class="headerlink" href="#optional" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Avoid the <code class="docutils literal"><span class="pre">&#64;optional</span></code> annotation whenever possible. In some cases its use
+is required, but every <code class="docutils literal"><span class="pre">&#64;optional</span></code> annotation in a typespec makes the
+associated TOs more difficult to use for downstream programmers.
+If a typespec has no <code class="docutils literal"><span class="pre">&#64;optional</span></code> annotations, a programmer knows exactly
+what data the TO contains and so the code to manipulate it can be simpler and
+therefore less buggy, easier to maintain, and less work to test.</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Developing typed object definitions</a><ul>
+<li><a class="reference internal" href="#to-size-and-composition">TO size and composition</a></li>
+<li><a class="reference internal" href="#very-large-objects">Very large objects</a></li>
+<li><a class="reference internal" href="#annotations">Annotations</a><ul>
+<li><a class="reference internal" href="#to-to-to-references-id-ws">TO to TO references (&#64;id ws)</a></li>
+<li><a class="reference internal" href="#optional">&#64;optional</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="users.html">User documentation</a><ul>
+      <li>Previous: <a href="typedobjects.html" title="previous chapter">Workspace typed objects</a></li>
+      <li>Next: <a href="typecheckingerrors.html" title="next chapter">Type checking error messages</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/devtypedobjects.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2012-2017, KBase.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/devtypedobjects.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

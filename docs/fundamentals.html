@@ -1,0 +1,300 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Workspace fundamentals &#8212; KBase Workspace 0.8.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.8.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="User documentation" href="users.html" />
+    <link rel="prev" title="KBase Workspace Service Manual" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="workspace-fundamentals">
+<h1>Workspace fundamentals<a class="headerlink" href="#workspace-fundamentals" title="Permalink to this headline">¶</a></h1>
+<p>The workspace service (WSS) provides language independent storage and retrieval
+of typed objects (TOs) much like those from various object oriented programming
+languages (except, of course, no behavior is associated with WSS TOs). Before
+an object is stored in the WSS, it is checked against a type specification that
+describes the object’s structure and contents. Failing this check will abort the
+storage operation.</p>
+<div class="section" id="typed-object-relationships">
+<h2>Typed object relationships<a class="headerlink" href="#typed-object-relationships" title="Permalink to this headline">¶</a></h2>
+<p>TOs can be related to each other in various ways (see Figure 1):</p>
+<div class="section" id="workspaces">
+<h3>Workspaces<a class="headerlink" href="#workspaces" title="Permalink to this headline">¶</a></h3>
+<p>Workspaces are arbitrary (from the perspective of the WSS) disjoint
+collections of TOs. Any meaning given to the collection is provided by the
+users creating that collection. For instance, a workspace might collect TOs
+representing known microbial genomes as a public resource, or, for a single
+genome, reads, an assembly, a genome, and a metabolic model that represent a
+single researcher’s work on a microbe.</p>
+<p>Each TOs is in one, and only one, workspace.</p>
+<p>Workspaces may be shared with other users, allowing read, write, or
+administration privileges. These privileges apply to all TOs in the workspace.</p>
+<p>Workspaces have a user-selected name and an integer ID that is immutable and
+assigned on creation. See <a class="reference internal" href="workspaces.html#workspaces"><span class="std std-ref">Workspaces</span></a> for more details.</p>
+</div>
+<div class="section" id="versions">
+<h3>Versions<a class="headerlink" href="#versions" title="Permalink to this headline">¶</a></h3>
+<p>TOs saved in the WSS are immutable. Saving ‘over’ a TO, rather than replacing
+it, creates a new version of the object. Most of an object’s properties may
+differ from version to version, but the object’s user-selected name, immutable
+integer ID (again assigned at creation) and a few other states are the same
+for all versions. See <a class="reference internal" href="saveobjects.html#objects"><span class="std std-ref">Objects</span></a> for more details.</p>
+</div>
+<div class="section" id="references">
+<h3>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h3>
+<p>The WSS supports two types of references: depencency references and provenance
+references.</p>
+<p>A dependency reference is a reference that implies an object is dependent on
+another object to function - a Genome on a ContigSet, for example. Dependency
+references are embedded in the object itself and are called out in the type
+specification (see <a class="reference internal" href="typedobjects.html#typedobjects"><span class="std std-ref">Workspace typed objects</span></a>). They can thus be required, if desired,
+and an object without such a dependency reference will fail to save.</p>
+<p>In contrast, a provenance reference implies that an object was produced
+from another object. These are not called out in the type specification and are
+not embedded in the object.</p>
+<p>Establishing data provenance is required for usable data and repeatable
+science. Without provenance data for a data object, said object might as well
+have been made from the whole cloth. Reproducing the data is impossible, and
+it is impossible to judge the data’s reliability.</p>
+<p>An application or user needs the object referred to in a dependency reference
+to compute on the referencing object; they do not need any provenance
+references. A dependent object may or may not be part of the referring object’s
+provenance - for example a Genome and ContigSet could be produced at the same
+time from a GenBank file and so the ContigSet would not be part of the
+Genome’s provenance. Rather, they would share the same provenance.</p>
+<p>When creating an object version, dependency and provenance references can be
+specified, thus recording which other objects are required to use that version
+of the object, and which other objects are required to understand the creation
+of that object.</p>
+<p>Both types of references have another special property - they guarantee access
+to the referent, regardless of permissions or deletion state, as long as the
+user has access to the referring object. The philosophy behind this permanent
+access is that a data object is useless without its provenance and dependencies
+as described above.</p>
+<p>See <a class="reference internal" href="saveobjects.html#objects"><span class="std std-ref">Objects</span></a> for more information on storing objects with references, and
+<a class="reference internal" href="traversereferences.html#traverseobjects"><span class="std std-ref">Traversing object references</span></a> for information on accessing referents.</p>
+</div>
+<div class="section" id="copies">
+<h3>Copies<a class="headerlink" href="#copies" title="Permalink to this headline">¶</a></h3>
+<p>Copying a TO from another TO implies that the new TO is effectively identical
+to the old TO - it possesses the same data and references. It may
+not have the same name or ID or exist in the same workspace. Unlike references,
+access to a copied object does not provide any special rights to the copy
+source.</p>
+<div class="figure align-center" id="id1">
+<img alt="_images/Legend_WS_OBJ_VER.png" src="_images/Legend_WS_OBJ_VER.png" />
+<p class="caption"><span class="caption-text">Figure 1: Types of relationships between workspace service objects</span></p>
+</div>
+</div>
+</div>
+<div class="section" id="addressing-workspaces-and-objects">
+<h2>Addressing workspaces and objects<a class="headerlink" href="#addressing-workspaces-and-objects" title="Permalink to this headline">¶</a></h2>
+<p>Workspaces may be addressed by either their mutable name or permanent ID.</p>
+<p>Objects may be addressed by a combination of the workspace name or ID, the
+object’s mutable name or permanent ID, and optionally a version in the reference format
+<code class="docutils literal"><span class="pre">[workspace</span> <span class="pre">name</span> <span class="pre">or</span> <span class="pre">ID]/[object</span> <span class="pre">name</span> <span class="pre">or</span> <span class="pre">ID]/[version]</span></code>.</p>
+<p>As an example, assume that an object with name <code class="docutils literal"><span class="pre">MyObj</span></code>, ID 12, and 3
+versions exists in a workspace with name <code class="docutils literal"><span class="pre">MyWS</span></code> and ID 4. The following are
+all valid addresses:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="57%" />
+<col width="43%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Address</th>
+<th class="head">Targets version</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>MyWs/MyObj</td>
+<td>3</td>
+</tr>
+<tr class="row-odd"><td>MyWs/12/2</td>
+<td>2</td>
+</tr>
+<tr class="row-even"><td>4/MyObj</td>
+<td>3</td>
+</tr>
+<tr class="row-odd"><td>4/12/1</td>
+<td>1</td>
+</tr>
+<tr class="row-even"><td>4/12/3</td>
+<td>3</td>
+</tr>
+<tr class="row-odd"><td>4/12</td>
+<td>3</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="the-object-graph">
+<h2>The object graph<a class="headerlink" href="#the-object-graph" title="Permalink to this headline">¶</a></h2>
+<p>The various relationships between objects create a graph structure of nodes
+(object versions) connected by edges (versions, references, and
+copies). Specifically, the objects form a directed acylic graph (DAG). As
+previously described, in the case of references the DAG may be traversed
+without limit <em>in the forward direction</em>, e.g. from referencing object to
+referent, starting with an object to which the user has direct access. A user
+may also traverse the DAG in the reverse direction, but only to objects to
+which the user already has direct access. See <a class="reference internal" href="traversereferences.html#traverseobjects"><span class="std std-ref">Traversing object references</span></a> for more
+details. It is possible to traverse the DAG from copy to copy source, but again
+only if the copy source is directly accessible by the user.</p>
+</div>
+<div class="section" id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<p>Figure 2 provides an example of how an object graph might look after a few
+operations.</p>
+<div class="figure align-center" id="id2">
+<img alt="_images/objectgraph.png" src="_images/objectgraph.png" />
+<p class="caption"><span class="caption-text">Figure 2: An example object graph</span></p>
+</div>
+<p>Assume that the objects in each workspace are numbered, starting at 1 in the
+upper left corner and incrementing for each object as one moves along the row.
+At the end of a row, the object on the next row receives the next number and
+the process continues.</p>
+<p><strong>Workspace #4</strong> has three objects. Object 3 has two versions, neither of which
+have outgoing references. Object 1 has 3 versions. Version 2 of object 1 has
+a dependency reference to version 2 of object 3. Object 2 has one version
+which has a dependency reference to version 2 of object 3.</p>
+<p><strong>Workspace #1</strong> has two objects. Object 1 has three versions, none of which have
+outgoing references. Object 2 has a single version with a reference to the
+single version of object 2 in workspace 4 - e.g. <code class="docutils literal"><span class="pre">4/2/1</span></code>.</p>
+<p>Thus, as described above, a user with access to workspace #1 also has access
+to the objects addressed by <code class="docutils literal"><span class="pre">4/2/1</span></code> and <code class="docutils literal"><span class="pre">4/3/2</span></code> via object 2.</p>
+<p>A user with access to workspace #4 has no access to object <code class="docutils literal"><span class="pre">1/2/1</span></code> unless
+explicitly granted such by an administrator of workspace #1 (which would allow
+access to all objects in workspace #1).</p>
+<p><strong>Workspace #6</strong> has a single object with a single version with no outgoing
+references. Although it has four incoming references, they provide no
+privileges for the referencing objects.</p>
+<p><strong>Workspace #5</strong> has two objects with one version each. Object 1 has a
+provenance reference to the object in workspace #6 and a dependency reference
+on object 2 in the same workspace. Object 2 has the same provenance reference
+as object 1.</p>
+<p><strong>Workspace #2</strong> has two objects. Object 1 has a single version that was copied
+from object <code class="docutils literal"><span class="pre">1/2/1</span></code>. Object 2 has two versions, the first of which has
+dependency references to both objects in workspace #5.</p>
+<p>Since object 1 was copied from object <code class="docutils literal"><span class="pre">1/2/1</span></code>, which has a dependency
+reference to object <code class="docutils literal"><span class="pre">4/2/1</span></code>, object 1 has the same reference and the same
+access to workspace #4s objects as object <code class="docutils literal"><span class="pre">1/2/1</span></code>.</p>
+<p>If the user examining object 1 also has access to workspace #1, the information
+that object 1 was copied from object <code class="docutils literal"><span class="pre">1/2/1</span></code> will be available. If not, the
+user will know the object was copied, but not from where.</p>
+<p>Since object 2 has two outgoing dependency references as described, access to
+object 2 also provides access to objects <code class="docutils literal"><span class="pre">5/1/1</span></code>, <code class="docutils literal"><span class="pre">5/2/1</span></code>, and <code class="docutils literal"><span class="pre">6/1/1</span></code>.</p>
+<p><strong>Workspace #3</strong> was cloned from workspace #5 (theoretically this should be
+impossible since the workspace with the lower ID must have been created first,
+but for the purposes of this example ignore that). It has the same two objects
+as workspace 5, and those objects possess the same references as the objects in
+workspace 5. In particular, object 1 has a dependency reference to object
+<code class="docutils literal"><span class="pre">5/2/1</span></code> (just as object <code class="docutils literal"><span class="pre">5/1/1</span></code> does) and both objects possess provenance
+references to the object in workspace #6. Both objects also have copy
+references to their source objects in workspace #5, but again, these references
+provide no special privileges.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Workspace fundamentals</a><ul>
+<li><a class="reference internal" href="#typed-object-relationships">Typed object relationships</a><ul>
+<li><a class="reference internal" href="#workspaces">Workspaces</a></li>
+<li><a class="reference internal" href="#versions">Versions</a></li>
+<li><a class="reference internal" href="#references">References</a></li>
+<li><a class="reference internal" href="#copies">Copies</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#addressing-workspaces-and-objects">Addressing workspaces and objects</a></li>
+<li><a class="reference internal" href="#the-object-graph">The object graph</a></li>
+<li><a class="reference internal" href="#example">Example</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">KBase Workspace Service Manual</a></li>
+      <li>Next: <a href="users.html" title="next chapter">User documentation</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/fundamentals.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2012-2017, KBase.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/fundamentals.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
