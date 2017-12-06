@@ -1,0 +1,15 @@
+{
+	"paths":["/notafield"],
+	"strict":true,
+	"data": {
+		"name":"something",
+		"id":"madeup",
+		"stuff":{
+			"thing":{"mac":{"junk":2,"junkidontwant":3},"pc":{}}
+		},
+		"otherstuff":[22],
+		"things":{}
+	},
+	"extract": "Invalid selection: data does not contain a field or key named 'notafield', at: /notafield"
+}
+	

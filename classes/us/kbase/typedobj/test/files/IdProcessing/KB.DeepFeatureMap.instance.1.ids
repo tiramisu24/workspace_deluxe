@@ -1,0 +1,66 @@
+{
+	"ids-relabel":{
+		"ws/myGene":"1/2/3",
+		"ws/myGene2":"2/3/4",
+		"ws/2":"4/5/6",
+		"ws/3":"5/6/7",
+		"foobar": "6/7/8"
+		},
+	"ids-found":{
+		"ws/myGene": 3,
+		"ws/myGene2": 2,
+		"ws/2": 4,
+		"ws/3": 2,
+		"foobar": 1
+		},
+	"renamed-expected": {
+		"azy_no_tc": {
+			"ws/myGene": { 
+				"ws/myGene2": [
+					1,
+					["ws/2","ws/myGene","ws/3"],
+					"ws/2"
+				]
+			},
+			"foobar": {
+				"ws/myGene2": [
+					2,
+					["ws/2","ws/myGene","ws/3"],
+					"ws/2"
+				]
+			}
+		},
+		"crazy" : {
+			"1/2/3": { 
+				"2/3/4": [
+					3,
+					["4/5/6","1/2/3","5/6/7"],
+					"4/5/6"
+				]
+			},
+			"6/7/8": { 
+				"2/3/4": [
+					4,
+					["4/5/6","1/2/3","5/6/7"],
+					"4/5/6"
+				]
+			}
+		},
+		"no_tc" : {
+			"ws/myGene": { 
+				"ws/myGene2": [
+					5,
+					["ws/2","ws/myGene","ws/3"],
+					"ws/2"
+				]
+			},
+			"foobar": {
+				"ws/myGene2": [
+					6,
+					["ws/2","ws/myGene","ws/3"],
+					"ws/2"
+				]
+			}
+		}
+	}
+}

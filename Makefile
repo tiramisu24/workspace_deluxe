@@ -1,5 +1,4 @@
 #port is now set in deploy.cfg
-SERVICE_PORT = $(shell perl server_scripts/get_deploy_cfg.pm Workspace.port)
 SERVICE = workspace
 SERVICE_CAPS = Workspace
 CLIENT_JAR = WorkspaceClient.jar
@@ -7,7 +6,7 @@ WAR = WorkspaceService.war
 URL = https://kbase.us/services/ws/
 
 #End of user defined variables
-TARGET ?= /kb/deployment
+TARGET ?= /kb/deployment/runtime
 
 GITCOMMIT := $(shell git rev-parse --short HEAD)
 #TODO use --points-at when git 1.7.10 available 
@@ -108,8 +107,7 @@ deploy-service-libs:
 deploy-service-scripts:
 	cp server_scripts/glassfish_administer_service.py $(SERVICE_DIR)
 	server_scripts/build_server_control_scripts.py $(SERVICE_DIR) $(WAR)\
-		$(TARGET) $(JAVA_HOME) deploy.cfg $(ASADMIN) $(SERVICE_CAPS)\
-		$(SERVICE_PORT)
+		$(TARGET) $(JAVA_HOME) deploy.cfg $(ASADMIN) $(SERVICE_CAPS)
 
 deploy-upstart:
 	echo "# $(SERVICE) service" > /etc/init/$(SERVICE).conf

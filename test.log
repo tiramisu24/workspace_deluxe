@@ -1,0 +1,3 @@
+Domain Workspace exists at /kb/deployment/services/workspace/glassfish_domain, skipping creation
+Starting domain Workspace
+Waiting for Workspace to start ..Command start-domain failed.
